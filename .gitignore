@@ -8,4 +8,5 @@
 zzREADME
 # demo directory
 demo*_tmp/
-
+# python bytecode
+*.pyc
