@@ -326,140 +326,141 @@ def PB_assign(pb_ref, structure, comment):
 #-------------------------------------------------------------------------------
 angle_modulo_360_vect = numpy.vectorize(angle_modulo_360)
 
-#===============================================================================
-# MAIN - program starts here
-#===============================================================================
+if __name__ == '__main__':
+    #===========================================================================
+    # MAIN - program starts here
+    #===========================================================================
 
-#-------------------------------------------------------------------------------
-# manage parameters
-#-------------------------------------------------------------------------------
-parser = optparse.OptionParser(
-    usage="%prog [options] -p file.pdb|dir [-p file2.pdb] -o output_root_name",
-    version="1.0")
-# mandatory arguments
-mandatory_opts = optparse.OptionGroup(
-    parser,
-    'Mandatory arguments')
-mandatory_opts.add_option("-p", action="append", type="string", 
-    help="name of pdb file or directory containing pdb files")
-mandatory_opts.add_option("-o", action="store", type="string", 
-    help="root name for results")
-parser.add_option_group(mandatory_opts)
-# optional arguments
-optional_opts = optparse.OptionGroup(
-    parser,
-    'Optional arguments')
-optional_opts.add_option("--phipsi", action="store_true", default=False,
-    help="writes phi and psi angle")
-optional_opts.add_option("--flat", action="store_true", default=False,
-    help="writes one PBs sequence per line")
-parser.add_option_group(optional_opts)
-# get all parameters
-(options, args) = parser.parse_args()
+    #---------------------------------------------------------------------------
+    # manage parameters
+    #---------------------------------------------------------------------------
+    parser = optparse.OptionParser(
+        usage="%prog [options] -p file.pdb|dir [-p file2.pdb] -o output_root_name",
+        version="1.0")
+    # mandatory arguments
+    mandatory_opts = optparse.OptionGroup(
+        parser,
+        'Mandatory arguments')
+    mandatory_opts.add_option("-p", action="append", type="string", 
+        help="name of pdb file or directory containing pdb files")
+    mandatory_opts.add_option("-o", action="store", type="string", 
+        help="root name for results")
+    parser.add_option_group(mandatory_opts)
+    # optional arguments
+    optional_opts = optparse.OptionGroup(
+        parser,
+        'Optional arguments')
+    optional_opts.add_option("--phipsi", action="store_true", default=False,
+        help="writes phi and psi angle")
+    optional_opts.add_option("--flat", action="store_true", default=False,
+        help="writes one PBs sequence per line")
+    parser.add_option_group(optional_opts)
+    # get all parameters
+    (options, args) = parser.parse_args()
 
-# check options
-if not options.p:
-    parser.print_help()
-    parser.error("options -p is mandatory")
+    # check options
+    if not options.p:
+        parser.print_help()
+        parser.error("options -p is mandatory")
 
-if not options.o:
-    parser.print_help()
-    parser.error("option -o is mandatory")
+    if not options.o:
+        parser.print_help()
+        parser.error("option -o is mandatory")
 
-#-------------------------------------------------------------------------------
-# check files
-#-------------------------------------------------------------------------------
-pdb_name_lst = []
+    #---------------------------------------------------------------------------
+    # check files
+    #---------------------------------------------------------------------------
+    pdb_name_lst = []
 
-for name in options.p:
-    if os.path.isfile(name):
-        pdb_name_lst.append(name)
-    elif os.path.isdir(name):
-        pdb_name_lst += glob.glob(name + "/*.pdb")
-    elif (not os.path.isfile(name) or not os.path.isdir(name)):
-        print "%s does not appear to be a valid file or directory" % name
+    for name in options.p:
+        if os.path.isfile(name):
+            pdb_name_lst.append(name)
+        elif os.path.isdir(name):
+            pdb_name_lst += glob.glob(name + "/*.pdb")
+        elif (not os.path.isfile(name) or not os.path.isdir(name)):
+            print "%s does not appear to be a valid file or directory" % name
 
-print "%d PDB file(s) to process" % (len(pdb_name_lst))
-if not pdb_name_lst:
-    sys.exit("Nothing to do. Bye.")
+    print "%d PDB file(s) to process" % (len(pdb_name_lst))
+    if not pdb_name_lst:
+        sys.exit("Nothing to do. Bye.")
 
 
-#-------------------------------------------------------------------------------
-# read PB definitions
-#-------------------------------------------------------------------------------
-pb_def = {}
-for line in PB_DATA.split("\n"):
-    if line and "#" not in line:
-        items = line.split()
-        pb_def[items[0]] = numpy.array([float(items[i]) for i in xrange(1, len(items))])
-print "read PB definitions: %d PBs x %d angles " % (len(pb_def), len(pb_def["a"]))
+    #---------------------------------------------------------------------------
+    # read PB definitions
+    #---------------------------------------------------------------------------
+    pb_def = {}
+    for line in PB_DATA.split("\n"):
+        if line and "#" not in line:
+            items = line.split()
+            pb_def[items[0]] = numpy.array([float(items[i]) for i in xrange(1, len(items))])
+    print "read PB definitions: %d PBs x %d angles " % (len(pb_def), len(pb_def["a"]))
 
-#-------------------------------------------------------------------------------
-# prepare fasta file for output
-#-------------------------------------------------------------------------------
-fasta_name = options.o + ".PB.fasta"
-clean_file(fasta_name)
+    #---------------------------------------------------------------------------
+    # prepare fasta file for output
+    #---------------------------------------------------------------------------
+    fasta_name = options.o + ".PB.fasta"
+    clean_file(fasta_name)
 
-#-------------------------------------------------------------------------------
-# prepare phi psi file for output
-#-------------------------------------------------------------------------------
-if options.phipsi:
-    phipsi_name = options.o + ".PB.phipsi"
-    clean_file(phipsi_name)
- 
-#-------------------------------------------------------------------------------
-# prepare flat file for output
-#-------------------------------------------------------------------------------
-if options.flat:
-    flat_name = options.o + ".PB.flat"
-    clean_file(flat_name)
+    #---------------------------------------------------------------------------
+    # prepare phi psi file for output
+    #---------------------------------------------------------------------------
+    if options.phipsi:
+        phipsi_name = options.o + ".PB.phipsi"
+        clean_file(phipsi_name)
+     
+    #---------------------------------------------------------------------------
+    # prepare flat file for output
+    #---------------------------------------------------------------------------
+    if options.flat:
+        flat_name = options.o + ".PB.flat"
+        clean_file(flat_name)
 
-#-------------------------------------------------------------------------------
-# read PDB files
-#-------------------------------------------------------------------------------
-structure = PdbStructureCls()
-model = ""
-chain = " "
-comment = ""
+    #---------------------------------------------------------------------------
+    # read PDB files
+    #---------------------------------------------------------------------------
+    structure = PdbStructureCls()
+    model = ""
+    chain = " "
+    comment = ""
 
-for pdb_name in pdb_name_lst:
-    print pdb_name 
-    f_in = open(pdb_name, 'r')
-    for line in f_in:
-        flag = line[0:6].strip()
-        if flag == "MODEL":
-            model = line.split()[1]
-        if flag == "ATOM":
-            atom = PdbAtomCls()
-            atom.read(line)
-            # assign structure upon new chain
-            if structure.size() != 0 and structure.chain != atom.chain:
+    for pdb_name in pdb_name_lst:
+        print pdb_name 
+        f_in = open(pdb_name, 'r')
+        for line in f_in:
+            flag = line[0:6].strip()
+            if flag == "MODEL":
+                model = line.split()[1]
+            if flag == "ATOM":
+                atom = PdbAtomCls()
+                atom.read(line)
+                # assign structure upon new chain
+                if structure.size() != 0 and structure.chain != atom.chain:
+                    PB_assign(pb_def, structure, comment)
+                    structure.clean()
+                # append structure with atom
+                structure.add_atom(atom)
+                # define structure comment
+                # when the structure contains 1 atom
+                if structure.size() == 1:
+                    comment = pdb_name 
+                    if model:
+                        comment += " | model %s" % (model)
+                        model = ""
+                    if atom.chain:
+                        comment += " | chain %s" % (atom.chain)
+                        atom.chain = ""
+            # assign structure after end of model (or chain)
+            if structure.size() != 0 and flag in ["TER", "ENDMDL"]:
                 PB_assign(pb_def, structure, comment)
                 structure.clean()
-            # append structure with atom
-            structure.add_atom(atom)
-            # define structure comment
-            # when the structure contains 1 atom
-            if structure.size() == 1:
-                comment = pdb_name 
-                if model:
-                    comment += " | model %s" % (model)
-                    model = ""
-                if atom.chain:
-                    comment += " | chain %s" % (atom.chain)
-                    atom.chain = ""
-        # assign structure after end of model (or chain)
-        if structure.size() != 0 and flag in ["TER", "ENDMDL"]:
-            PB_assign(pb_def, structure, comment)
-            structure.clean()
-    # assign last structure
-    if structure.size() != 0:
-        PB_seq = PB_assign(pb_def, structure, comment)
+        # assign last structure
+        if structure.size() != 0:
+            PB_seq = PB_assign(pb_def, structure, comment)
 
-    f_in.close()   
-print "wrote %s" % (fasta_name)
-if options.flat:
-    print "wrote %s" % (flat_name)
-if options.phipsi:
-    print "wrote %s" % (phipsi_name)
+        f_in.close()   
+    print "wrote %s" % (fasta_name)
+    if options.flat:
+        print "wrote %s" % (flat_name)
+    if options.phipsi:
+        print "wrote %s" % (phipsi_name)
 
