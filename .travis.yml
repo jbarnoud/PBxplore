@@ -14,5 +14,5 @@ install:
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install mdanalysis; fi
 # command to run tests
 script:
-    - nosetests --with-coverage --cover-package=PBlib,PDBlib test_functions.py test_regression.py
+    - nosetests --with-timer --with-coverage --cover-package=PBlib,PDBlib test_functions.py test_regression.py
 #after_success:
