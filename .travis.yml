@@ -6,10 +6,13 @@ python:
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
   #- "pypy"
+# Install apt packages
+addons:
+  apt:
+    packages:
+    - r-base
 # command to install dependencies
 install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -y r-base
     - pip install -r dev_requirements.txt --use-mirrors
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install mdanalysis; fi
 # command to run tests
