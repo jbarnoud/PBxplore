@@ -529,6 +529,31 @@ def _matrix_to_str(distance_mat):
     return output_mat_str
 
 
+def _R_version():
+    """
+    Return version of R as a tuple of interger
+    """
+    parts = {}
+    for part in ('major', 'minor'):
+        command = ('echo "version" | R --vanilla | grep {} | cut -c 6-'
+                   .format(part))
+        proc = subprocess.Popen(command, shell=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+        (out, err) = proc.communicate()
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+        if err:
+            raise RError("{0}".format(err))
+        code = proc.wait()
+        if code:
+            raise RError("R returned with code {}".format(code))
+        parts[part] = out.strip()
+    return tuple([int(parts['major'])]
+                 + [int(x) for x in parts['minor'].split('.')])
+
+
 def hclust(distance_mat, nclusters, method='ward'):
     """
     Hierachical clustering using R
@@ -555,7 +580,23 @@ def hclust(distance_mat, nclusters, method='ward'):
     RError : something wrong happened with R
     """
     # Convert the distance matrix into a string readable by R
-    output_mat_str = _matrix_to_str(distance_mat)
+    # If the user want to use the ward method, then we need to adapt the R
+    # input based on the R version. Indeed, R versions greater than 3.0.3
+    # deprecated the 'ward' name in favor of 'ward.D' and 'ward.D2'. 'ward'
+    # and 'ward.D' should not be used as is; instead the 'ward.D2' should be
+    # prefered. For versions lesser or equal to 3.0.3, the distance matrix
+    # should be squared to be used with 'ward'. See issue #66
+    # <https://github.com/pierrepo/PBxplore/issues/66> and
+    # <http://arxiv.org/pdf/1111.6285.pdf> for more on the issue.
+    if method == 'ward':
+        if _R_version() <= (3, 0, 3):
+            output_mat_str = _matrix_to_str(distance_mat ** 2)
+        else:
+            output_mat_str =  _matrix_to_str(distance_mat)
+            method = 'ward.D2'
+    else:
+        output_mat_str =  _matrix_to_str(distance_mat)
+
     # Build the R script
     R_script = """
     connector = textConnection("{matrix}")
