@@ -591,12 +591,9 @@ def hclust(distance_mat, nclusters, method='ward'):
     if method == 'ward.D':
         method = 'ward'
     if method == 'ward':
-        print(_R_version)
         if _R_version() <= (3, 0, 3):
-            print('old R')
             output_mat_str = _matrix_to_str(distance_mat ** 2)
         else:
-            print('new R')
             output_mat_str =  _matrix_to_str(distance_mat)
             method = 'ward.D2'
     else:
@@ -624,7 +621,7 @@ def hclust(distance_mat, nclusters, method='ward'):
         }}
     }}
 
-    medoids = sapply(unique(clusters), clust.medoid, distances, clusters)
+    medoids = sapply(unique(clusters), clust.medoid, sqrt(distances), clusters)
 
     cat("cluster_id", clusters, "\n")
     cat("medoid_id", medoids)
