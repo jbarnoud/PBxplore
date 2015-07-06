@@ -588,6 +588,8 @@ def hclust(distance_mat, nclusters, method='ward'):
     # should be squared to be used with 'ward'. See issue #66
     # <https://github.com/pierrepo/PBxplore/issues/66> and
     # <http://arxiv.org/pdf/1111.6285.pdf> for more on the issue.
+    if method == 'ward.D':
+        method = 'ward'
     if method == 'ward':
         if _R_version() <= (3, 0, 3):
             output_mat_str = _matrix_to_str(distance_mat ** 2)
