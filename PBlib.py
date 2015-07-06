@@ -601,11 +601,12 @@ def hclust(distance_mat, nclusters, method='ward'):
 
     # Build the R script
     R_script = """
+    method = "{method}"
     connector = textConnection("{matrix}")
     distances = read.table(connector, header=FALSE)
     rownames(distances) = colnames(distances)
 
-    clusters = cutree(hclust(as.dist(distances), method="{method}"), k={clusters})
+    clusters = cutree(hclust(as.dist(distances), method=method), k={clusters})
     distances = as.matrix(distances)
 
     # function to find medoid in cluster i
@@ -621,7 +622,10 @@ def hclust(distance_mat, nclusters, method='ward'):
         }}
     }}
 
-    medoids = sapply(unique(clusters), clust.medoid, sqrt(distances), clusters)
+    if (method == 'ward') {{
+        distance = sqrt(distances)
+    }}
+    medoids = sapply(unique(clusters), clust.medoid, distances, clusters)
 
     cat("cluster_id", clusters, "\n")
     cat("medoid_id", medoids)
