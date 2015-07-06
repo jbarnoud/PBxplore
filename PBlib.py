@@ -623,6 +623,7 @@ def hclust(distance_mat, nclusters, method='ward'):
     }}
 
     if (method == 'ward') {{
+        cat('Using ward. We should use the square root of the distance matrix\n')
         distance = sqrt(distances)
     }}
     medoids = sapply(unique(clusters), clust.medoid, distances, clusters)
