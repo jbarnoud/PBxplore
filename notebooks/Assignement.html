@@ -292,7 +292,7 @@ to a trajectory and the path to the corresponding topology as argument.
 Any file formats readable by MDAnalysis can be used. Except for its
 arguments, <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_trajectory()</span></code> works the same as
 <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code>.</p>
-<p>** Note that MDAnalysis is required to use this feature. **</p>
+<p><em>Note that MDAnalysis is required to use this feature.</em></p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="n">trajectory</span> <span class="o">=</span> <span class="s">&#39;demo2/barstar_md_traj.xtc&#39;</span>
 <span class="n">topology</span> <span class="o">=</span> <span class="s">&#39;demo2/barstar_md_traj.gro&#39;</span>
 <span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_trajectory</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">topology</span><span class="p">):</span>
