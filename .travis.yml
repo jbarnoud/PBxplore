@@ -13,6 +13,7 @@ addons:
     apt:
         packages:
             - r-base
+            - pandoc
 
 before_install:
     # Tricks to avoid matplotlib error about X11:
@@ -26,6 +27,7 @@ install:
     - pip install -r dev_requirements.txt
     - pip install matplotlib
     - pip install weblogo
+    - pip install jupyter ipython biopython # Stuff for the doc
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install "mdanalysis>=0.11"; fi
 
 # command to run tests
@@ -34,6 +36,6 @@ script:
     - yes | ./run_demo1_assignation.sh
     - yes | ./run_demo2_statistics.sh
     - yes | ./run_demo2_clusters.sh
-    - cd doc-api; make html
+    - cd doc-api; ./build.sh
 
 #after_success:
