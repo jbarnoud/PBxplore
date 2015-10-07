@@ -34,5 +34,6 @@ script:
     - yes | ./run_demo1_assignation.sh
     - yes | ./run_demo2_statistics.sh
     - yes | ./run_demo2_clusters.sh
+    - cd doc-api; make html
 
 #after_success:
