@@ -11,11 +11,13 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
+   ./notebooks/Assignement
    ./pages/PB
    ./pages/structure
    ./pages/assign
    ./pages/io
    ./pages/analysis
+   ./pages/pbxplore
 
 
 Indices and tables
