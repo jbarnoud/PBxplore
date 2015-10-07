@@ -15,6 +15,9 @@
 import sys
 import os
 
+AUTHORS = [u'Pierre Poulain', u'Jonathan Barnoud',
+           u'Hubert Santuz', u'Alexandre G. deBrevern']
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -49,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PBxplore API'
-copyright = u'2015, Pierre Poulain'
+copyright = u'2015, Pierre Poulain, and Alexandre G. deBrevern'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -202,7 +205,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('ind', 'PBxploreAPI.tex', u'PBxplore API Documentation',
-   u'Pierre Poulain', 'manual'),
+   ' '.join(AUTHORS), 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -232,7 +235,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('ind', 'pbxploreapi', u'PBxplore API Documentation',
-     [u'Pierre Poulain'], 1)
+     AUTHORS, 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -246,7 +249,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('ind', 'PBxploreAPI', u'PBxplore API Documentation',
-   u'Pierre Poulain', 'PBxploreAPI', 'One line description of project.',
+   ' '.join(AUTHORS), 'PBxploreAPI', 'One line description of project.',
    'Miscellaneous'),
 ]
 
