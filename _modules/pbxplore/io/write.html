@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pbxplore.io.write &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pbxplore.io.write</h1><div class="highlight"><pre>
+<span class="c">#! /usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="c"># Standard modules</span>
+<span class="c"># import os</span>
+
+<span class="c"># Local modules</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">PB</span>
+<span class="kn">from</span> <span class="nn">..analysis</span> <span class="kn">import</span> <span class="n">utils</span>
+
+
+<span class="k">def</span> <span class="nf">_write_phipsi_entry</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">torsion</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">torsion</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%8.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">torsion</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="s">&quot;phi&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="s">&quot;    None&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">psi</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%8.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">torsion</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="s">&quot;psi&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">psi</span> <span class="o">=</span> <span class="s">&quot;    None&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;{} {:6d} {} {} &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comment</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">),</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="write_phipsi"><a class="viewcode-back" href="../../../pages/io.html#pbxplore.io.write_phipsi">[docs]</a><span class="k">def</span> <span class="nf">write_phipsi</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">torsions</span><span class="p">,</span> <span class="n">comments</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">torsion</span><span class="p">,</span> <span class="n">comment</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">torsions</span><span class="p">,</span> <span class="n">comments</span><span class="p">):</span>
+        <span class="n">_write_phipsi_entry</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">torsion</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="write_flat"><a class="viewcode-back" href="../../../pages/io.html#pbxplore.io.write_flat">[docs]</a><span class="k">def</span> <span class="nf">write_flat</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">sequences</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="write_count_matrix"><a class="viewcode-back" href="../../../pages/io.html#pbxplore.io.write_count_matrix">[docs]</a><span class="k">def</span> <span class="nf">write_count_matrix</span><span class="p">(</span><span class="n">pb_count</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a PB occurence matrix in a file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pb_count: an occurence matrix as a 2D numpy array.</span>
+<span class="sd">    outfile: an open file where to write the matrix.</span>
+<span class="sd">    first: the residue number of the first position.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># write the header (PB names)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;    &quot;</span> <span class="o">+</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;</span><span class="si">%6s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">PB</span><span class="o">.</span><span class="n">NAMES</span><span class="p">]),</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="c"># write the data table</span>
+    <span class="k">for</span> <span class="n">residue_idx</span><span class="p">,</span> <span class="n">residue_pb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pb_count</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%-5d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">residue_idx</span> <span class="o">+</span> <span class="n">first</span><span class="p">)</span> <span class="o">+</span>
+              <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%5d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">residue_pb</span><span class="p">),</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="write_neq"><a class="viewcode-back" href="../../../pages/io.html#pbxplore.io.write_neq">[docs]</a><span class="k">def</span> <span class="nf">write_neq</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">neq_array</span><span class="p">,</span> <span class="n">residue_min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">residue_max</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the Neq matrix in an open file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    outfile : file descriptor</span>
+<span class="sd">        The file descriptor to write in. It must allow writing.</span>
+<span class="sd">    neq_array : numpy array</span>
+<span class="sd">        a 1D array containing the neq values.</span>
+<span class="sd">    residue_min: int</span>
+<span class="sd">        the lower bound of residue frame</span>
+<span class="sd">    residue_max: int</span>
+<span class="sd">        the upper bound of residue frame</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Slice</span>
+    <span class="n">neq</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">_slice_matrix</span><span class="p">(</span><span class="n">neq_array</span><span class="p">,</span> <span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_max</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%-6s</span><span class="s"> </span><span class="si">%8s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&quot;resid&quot;</span><span class="p">,</span> <span class="s">&quot;Neq&quot;</span><span class="p">),</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">neq</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">neq</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%-6d</span><span class="s"> </span><span class="si">%8.2f</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">res</span> <span class="o">+</span> <span class="n">residue_min</span><span class="p">,</span> <span class="n">neq</span><span class="p">),</span> <span class="nb">file</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

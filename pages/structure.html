@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Protein structure manipulation — pbxplore.structure &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../index.html" />
+    <link rel="next" title="Protrein Block assignation — pbxplore.assign" href="assign.html" />
+    <link rel="prev" title="Protein Blocks related data — pbxplore.PB" href="PB.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-pbxplore.structure"></span><div class="section" id="protein-structure-manipulation-pbxplore-structure">
+<h1>Protein structure manipulation &#8212; <a class="reference internal" href="#module-pbxplore.structure" title="pbxplore.structure"><code class="xref py py-mod docutils literal"><span class="pre">pbxplore.structure</span></code></a><a class="headerlink" href="#protein-structure-manipulation-pbxplore-structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="constants">
+<h2>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl class="first docutils">
+<dt><code class="xref py py-data docutils literal"><span class="pre">PDB_EXTENSIONS</span></code></dt>
+<dd><p class="first last">list of file extensions corresponding to PDB files</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="xref py py-data docutils literal"><span class="pre">PDBx_EXTENSIONS</span></code></dt>
+<dd><p class="first last">list of file extensions corresponding to PDBx/mmCIF files</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pbxplore.structure.chains_from_files">
+<code class="descclassname">pbxplore.structure.</code><code class="descname">chains_from_files</code><span class="sig-paren">(</span><em>path_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pbxplore/structure/loader.html#chains_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.chains_from_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pbxplore.structure.chains_from_trajectory">
+<code class="descclassname">pbxplore.structure.</code><code class="descname">chains_from_trajectory</code><span class="sig-paren">(</span><em>trajectory</em>, <em>topology</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pbxplore/structure/loader.html#chains_from_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.chains_from_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="objects">
+<h2>Objects<a class="headerlink" href="#objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pbxplore.structure.structure.Chain">
+<em class="property">class </em><code class="descclassname">pbxplore.structure.structure.</code><code class="descname">Chain</code><a class="reference internal" href="../_modules/pbxplore/structure/structure.html#Chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.structure.Chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to handle PDB chain</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pbxplore.structure.structure.Atom">
+<em class="property">class </em><code class="descclassname">pbxplore.structure.structure.</code><code class="descname">Atom</code><a class="reference internal" href="../_modules/pbxplore/structure/structure.html#Atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.structure.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for atoms in PDB or PDBx/mmCIF format.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pbxplore.structure.PDB.PDB">
+<em class="property">class </em><code class="descclassname">pbxplore.structure.PDB.</code><code class="descname">PDB</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pbxplore/structure/PDB.html#PDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.PDB.PDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to read PDB files.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pbxplore.structure.structure.ChainError">
+<em class="property">exception </em><code class="descclassname">pbxplore.structure.structure.</code><code class="descname">ChainError</code><a class="reference internal" href="../_modules/pbxplore/structure/structure.html#ChainError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.structure.ChainError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exeption class for the Chain class</p>
+<p>This is a really lazy class. Feel to improve.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pbxplore.structure.structure.AtomError">
+<em class="property">exception </em><code class="descclassname">pbxplore.structure.structure.</code><code class="descname">AtomError</code><a class="reference internal" href="../_modules/pbxplore/structure/structure.html#AtomError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pbxplore.structure.structure.AtomError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exeption class for the Atom class.</p>
+<p>This is a really lazy class. Feel to improve.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Protein structure manipulation &#8212; <code class="docutils literal"><span class="pre">pbxplore.structure</span></code></a><ul>
+<li><a class="reference internal" href="#constants">Constants</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#objects">Objects</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="PB.html" title="previous chapter">Protein Blocks related data &#8212; <code class="docutils literal"><span class="pre">pbxplore.PB</span></code></a></li>
+      <li>Next: <a href="assign.html" title="next chapter">Protrein Block assignation &#8212; <code class="docutils literal"><span class="pre">pbxplore.assign</span></code></a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pages/structure.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="../_sources/pages/structure.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

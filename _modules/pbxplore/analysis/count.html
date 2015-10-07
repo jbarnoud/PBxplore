@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pbxplore.analysis.count &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pbxplore.analysis.count</h1><div class="highlight"><pre>
+<span class="c">#! /usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+
+<span class="c"># Third-party module</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c"># Local module</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">PB</span>
+
+
+<span class="k">def</span> <span class="nf">_assert_same_size</span><span class="p">(</span><span class="n">sequences</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raise an exception is all sequence are not the same length.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sequences: a list of sequences</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SizeError</span>
+<span class="sd">        not all the sequences are the same length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seq_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">!=</span> <span class="n">seq_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PB</span><span class="o">.</span><span class="n">SizeError</span>
+
+
+<div class="viewcode-block" id="count_matrix"><a class="viewcode-back" href="../../../pages/analysis.html#pbxplore.analysis.count_matrix">[docs]</a><span class="k">def</span> <span class="nf">count_matrix</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Count the occurences of each block at each position.</span>
+
+<span class="sd">    The occurence matrix has one row per sequence, and one column per block.</span>
+<span class="sd">    The columns are ordered in as PB.NAMES.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pb_seq: a list of PB sequences.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    The occurence matrix.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    InvalidBlockError</span>
+<span class="sd">        encountered an unexpected PB</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_assert_same_size</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">)</span>
+    <span class="n">pb_count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>  <span class="nb">len</span><span class="p">(</span><span class="n">PB</span><span class="o">.</span><span class="n">NAMES</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">pb_seq</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">PB</span><span class="o">.</span><span class="n">NAMES</span><span class="p">:</span>
+                <span class="n">pb_count</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">PB</span><span class="o">.</span><span class="n">NAMES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">block</span><span class="p">)]</span> <span class="o">+=</span> <span class="mf">1.0</span>
+            <span class="k">elif</span> <span class="n">block</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;Z&quot;</span><span class="p">,</span> <span class="s">&quot;z&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">PB</span><span class="o">.</span><span class="n">InvalidBlockError</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pb_count</span>
+
+</div>
+<div class="viewcode-block" id="read_occurence_file"><a class="viewcode-back" href="../../../pages/analysis.html#pbxplore.analysis.read_occurence_file">[docs]</a><span class="k">def</span> <span class="nf">read_occurence_file</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read an occurence matrix from a file.</span>
+<span class="sd">    It will return the matrix as a numpy array and the indexes of residues.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    count_mat : numpy array</span>
+<span class="sd">        the occurence matrix without the residue number</span>
+<span class="sd">    residues: list</span>
+<span class="sd">        the list of residues indexes</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        when something is wrong about the file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># load count file</span>
+    <span class="c"># skip first row that contains PBs labels</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;ERROR: {0}: wrong data format&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="c"># determine number of sequences compiled</span>
+    <span class="c"># use the sum of all residue at position 3</span>
+    <span class="c"># since positions 1 and 2 have no PBs assignement</span>
+    <span class="c"># and begin at 1 to not sum the index of the line (here is 3)</span>
+    <span class="n">sequence_number</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">count</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:])</span>
+    <span class="k">if</span> <span class="n">sequence_number</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;ERROR: counting 0 sequences!&quot;</span><span class="p">)</span>
+
+    <span class="c"># read residues number</span>
+    <span class="n">residues</span> <span class="o">=</span> <span class="n">count</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c"># remove residue numbers (first column)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">count</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c"># get index of first residue</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">residues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;&quot;&quot;ERROR: cannot read index of first residue.</span>
+<span class="s">                         Wrong data format in {0}&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">count</span><span class="p">,</span> <span class="n">residues</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

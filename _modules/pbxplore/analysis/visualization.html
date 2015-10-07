@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pbxplore.analysis.visualization &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pbxplore.analysis.visualization</h1><div class="highlight"><pre>
+<span class="c">#! /usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="c"># Standard modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c"># Third-party modules</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="c"># Local modules</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">PB</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">utils</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">weblogolib</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c"># Python2/Python3 compatibility</span>
+<span class="c"># The range function in python 3 behaves as the range function in python 2</span>
+<span class="c"># and returns a generator rather than a list. To produce a list in python 3,</span>
+<span class="c"># one should use list(range). Here we change range to behave the same in</span>
+<span class="c"># python 2 and in python 3. In both cases, range will return a generator.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">range</span> <span class="o">=</span> <span class="nb">xrange</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="plot_neq"><a class="viewcode-back" href="../../../pages/analysis.html#pbxplore.analysis.plot_neq">[docs]</a><span class="k">def</span> <span class="nf">plot_neq</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">neq_array</span><span class="p">,</span> <span class="n">residue_min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">residue_max</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate the Neq plot along the protein sequence</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neq_array : numpy array</span>
+<span class="sd">        an array containing the neq value associated to the residue number</span>
+<span class="sd">    fname : str</span>
+<span class="sd">        The path to the file to write in</span>
+<span class="sd">    residue_min: int</span>
+<span class="sd">        the lower bound of the protein sequence</span>
+<span class="sd">    residue_max: int</span>
+<span class="sd">        the upper bound of the protein sequence</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">neq</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">_slice_matrix</span><span class="p">(</span><span class="n">neq_array</span><span class="p">,</span> <span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_max</span><span class="p">)</span>
+    <span class="n">nb_residues</span> <span class="o">=</span> <span class="n">neq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c"># Residue number with good offset given the slice</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_min</span> <span class="o">+</span> <span class="n">nb_residues</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nb_residues</span><span class="p">),</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">neq</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">neq</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;Residue number&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;Neq&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;italic&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="plot_map"><a class="viewcode-back" href="../../../pages/analysis.html#pbxplore.analysis.plot_map">[docs]</a><span class="k">def</span> <span class="nf">plot_map</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">count_mat</span><span class="p">,</span> <span class="n">residue_min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">residue_max</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a map of the distribution of PBs along protein sequence from</span>
+<span class="sd">    an occurence matrix.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str</span>
+<span class="sd">        The path to the file to write in</span>
+<span class="sd">    count_mat : numpy array</span>
+<span class="sd">        an occurence matrix returned by `count_matrix`.</span>
+<span class="sd">    residue_min: int</span>
+<span class="sd">        the lower bound of the protein sequence</span>
+<span class="sd">    residue_max: int</span>
+<span class="sd">        the upper bound of the protein sequence</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Get the frequency matrix</span>
+    <span class="n">freq_mat</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">compute_freq_matrix</span><span class="p">(</span><span class="n">count_mat</span><span class="p">)</span>
+    <span class="c"># Slice it</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">_slice_matrix</span><span class="p">(</span><span class="n">freq_mat</span><span class="p">,</span> <span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_max</span><span class="p">)</span>
+    <span class="n">nb_residues</span> <span class="o">=</span> <span class="n">freq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c"># Residue number with good offset given the slice</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_min</span> <span class="o">+</span> <span class="n">nb_residues</span><span class="p">)</span>
+
+    <span class="c"># define ticks for x-axis</span>
+    <span class="n">x_step</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">xticks</span> <span class="o">=</span> <span class="n">x</span><span class="p">[::</span><span class="n">x_step</span><span class="p">]</span>
+    <span class="c"># trying to round ticks: 5, 10, 15 instead of 6, 11, 16...</span>
+    <span class="k">if</span> <span class="n">xticks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">xticks</span> <span class="o">=</span> <span class="n">xticks</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">xticks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">yticks</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;h&#39;</span><span class="p">,</span>
+              <span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;j&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="s">&#39;l&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">,</span> <span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;p&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nb_residues</span><span class="p">),</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">])</span>
+
+    <span class="c"># Color scheme inspired from ColorBrewer</span>
+    <span class="c"># http://colorbrewer2.org/?type=diverging&amp;scheme=RdYlBu&amp;n=5</span>
+    <span class="c"># This color scheme is colorblind safe</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">44.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">123.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">182.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">171.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">217.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">233.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">255.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">255.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">191.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">253.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">174.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">97.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">215.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">25.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">28.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)]</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="s">&#39;ColBrewerRdYlBu&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">freq</span><span class="p">[:,</span> <span class="p">:]),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">origin</span><span class="o">=</span><span class="s">&#39;lower&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">xticks</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">yticks</span><span class="p">)))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">yticks</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;italic&#39;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s">&#39;bold&#39;</span><span class="p">)</span>
+    <span class="n">colorbar_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.87</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">colorbar_ax</span><span class="p">)</span>
+    <span class="c"># print &quot;beta-strand&quot;, &quot;coil&quot; and &quot;alpha-helix&quot; text</span>
+    <span class="c"># only if there is more than 20 residues</span>
+    <span class="k">if</span> <span class="n">nb_residues</span> <span class="o">&gt;=</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="c"># center alpha-helix: PB m (13th PB out of 16 PBs)</span>
+        <span class="c"># center coil: PB h and i (8th and 9th PBs out of 16 PBs)</span>
+        <span class="c"># center beta-sheet: PB d (4th PB out of 16 PBs)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">4.0</span><span class="o">/</span><span class="mi">16</span><span class="o">*</span><span class="mf">0.8</span><span class="o">+</span><span class="mf">0.075</span><span class="p">,</span> <span class="s">r&quot;$\beta$-strand&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+                 <span class="n">va</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">8.5</span><span class="o">/</span><span class="mi">16</span><span class="o">*</span><span class="mf">0.8</span><span class="o">+</span><span class="mf">0.075</span><span class="p">,</span> <span class="s">r&quot;coil&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+                 <span class="n">va</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">13.0</span><span class="o">/</span><span class="mi">16</span><span class="o">*</span><span class="mf">0.8</span><span class="o">+</span><span class="mf">0.075</span><span class="p">,</span> <span class="s">r&quot;$\alpha$-helix&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+                 <span class="n">va</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s">&quot;PBs&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s">&quot;bold&quot;</span><span class="p">,</span>
+             <span class="n">size</span><span class="o">=</span><span class="s">&#39;larger&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s">&quot;Residue number&quot;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s">&quot;bold&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.96</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="s">&quot;Intensity&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s">&quot;bold&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="generate_weblogo"><a class="viewcode-back" href="../../../pages/analysis.html#pbxplore.analysis.generate_weblogo">[docs]</a><span class="k">def</span> <span class="nf">generate_weblogo</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">count_mat</span><span class="p">,</span> <span class="n">residue_min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">residue_max</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates logo representation of PBs frequency along protein sequence through</span>
+<span class="sd">    the weblogo library.</span>
+
+<span class="sd">    The weblogo reference:</span>
+<span class="sd">    G. E. Crooks, G. Hon, J.-M. Chandonia, and S. E. Brenner.</span>
+<span class="sd">    &#39;WebLogo: A Sequence Logo Generator.&#39;</span>
+<span class="sd">    Genome Research 14:1188–90 (2004)</span>
+<span class="sd">    doi:10.1101/gr.849004.</span>
+<span class="sd">    http://weblogo.threeplusone.com/</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fname : str</span>
+<span class="sd">        The path to the file to write in</span>
+<span class="sd">    count_mat : numpy array</span>
+<span class="sd">        an occurence matrix returned by `count_matrix`.</span>
+<span class="sd">    residue_min: int</span>
+<span class="sd">        the lower bound of residue frame</span>
+<span class="sd">    residue_max: int</span>
+<span class="sd">        the upper bound of residue frame</span>
+<span class="sd">    title: str</span>
+<span class="sd">        the title of the weblogo. Default is empty.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Slice the matrix</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">_slice_matrix</span><span class="p">(</span><span class="n">count_mat</span><span class="p">,</span> <span class="n">residue_min</span><span class="p">,</span> <span class="n">residue_max</span><span class="p">)</span>
+
+    <span class="c"># Create a custom color scheme for PB</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorScheme</span><span class="p">([</span><span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorGroup</span><span class="p">(</span><span class="s">&quot;d&quot;</span><span class="p">,</span> <span class="s">&quot;#1240AB&quot;</span><span class="p">,</span> <span class="s">&quot;strand main&quot;</span><span class="p">),</span>
+                                     <span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorGroup</span><span class="p">(</span><span class="s">&quot;abcdef&quot;</span><span class="p">,</span> <span class="s">&quot;#1240AB&quot;</span><span class="p">,</span> <span class="s">&quot;strand others&quot;</span><span class="p">),</span>
+                                     <span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorGroup</span><span class="p">(</span><span class="s">&quot;ghij&quot;</span><span class="p">,</span> <span class="s">&quot;#0BD500&quot;</span><span class="p">,</span> <span class="s">&quot;coil&quot;</span><span class="p">),</span>
+                                     <span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorGroup</span><span class="p">(</span><span class="s">&quot;m&quot;</span><span class="p">,</span>  <span class="s">&quot;#FD0006&quot;</span><span class="p">,</span> <span class="s">&quot;helix main&quot;</span><span class="p">),</span>
+                                     <span class="n">weblogolib</span><span class="o">.</span><span class="n">ColorGroup</span><span class="p">(</span><span class="s">&quot;klnop&quot;</span><span class="p">,</span>  <span class="s">&quot;#FD0006&quot;</span><span class="p">,</span> <span class="s">&quot;helix others&quot;</span><span class="p">)])</span>
+
+    <span class="c"># Load data from an occurence matrix</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">weblogolib</span><span class="o">.</span><span class="n">LogoData</span><span class="o">.</span><span class="n">from_counts</span><span class="p">(</span><span class="n">PB</span><span class="o">.</span><span class="n">NAMES</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+
+    <span class="c"># Create options</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">weblogolib</span><span class="o">.</span><span class="n">LogoOptions</span><span class="p">(</span><span class="n">fineprint</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">logo_title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">color_scheme</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+                                     <span class="n">stack_width</span><span class="o">=</span><span class="n">weblogolib</span><span class="o">.</span><span class="n">std_sizes</span><span class="p">[</span><span class="s">&quot;large&quot;</span><span class="p">],</span>
+                                     <span class="n">first_residue</span><span class="o">=</span><span class="n">residue_min</span><span class="p">)</span>
+
+    <span class="c"># Generate weblogo</span>
+    <span class="n">logo</span> <span class="o">=</span> <span class="n">weblogolib</span><span class="o">.</span><span class="n">LogoFormat</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="c"># Retrieve image format</span>
+    <span class="n">image_format</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c"># Retrieve the right function given the image format</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">image_format</span> <span class="o">==</span> <span class="s">&#39;jpg&#39;</span><span class="p">:</span>
+            <span class="n">image_format</span> <span class="o">=</span> <span class="s">&#39;jpeg&#39;</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">weblogolib</span><span class="o">.</span><span class="n">formatters</span><span class="p">[</span><span class="n">image_format</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Invalid format image &#39;{0}&#39;.&quot;</span>
+                         <span class="s">&quot; Valid ones are : eps, png, pdf, jpg/jpeg, svg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">image_format</span><span class="p">))</span>
+    <span class="c"># Format the logo</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">formatter</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">logo</span><span class="p">)</span>
+
+    <span class="c"># Write it</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="nb">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

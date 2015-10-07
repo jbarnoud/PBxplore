@@ -1,0 +1,537 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PBxplore API cookbook — PB assignation &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../index.html" />
+    <link rel="next" title="Protein Blocks related data — pbxplore.PB" href="../pages/PB.html" />
+    <link rel="prev" title="Welcome to PBxplore API’s documentation!" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pbxplore-api-cookbook-pb-assignation">
+<h1>PBxplore API cookbook — PB assignation<a class="headerlink" href="#pbxplore-api-cookbook-pb-assignation" title="Permalink to this headline">¶</a></h1>
+<p>We hereby demonstrate how to use the PBxplore API to assign PB
+sequences.</p>
+<p>This page is initialy a jupyter notebook. You can see a <a class="reference external" href="Assignement_.html">notebook HTML
+render</a> of it or download the <a class="reference external" href="Assignement.ipynb">notebook
+itself</a>.</p>
+<div class="code python highlight-python"><div class="highlight"><pre>from __future__ import print_function, division
+from pprint import pprint
+%cd ../../../
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>/Users/jon/dev/PBxplore
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pbxplore</span> <span class="kn">as</span> <span class="nn">pbx</span>
+</pre></div>
+</div>
+<div class="section" id="use-the-built-in-structure-parser">
+<h2>Use the built-in structure parser<a class="headerlink" href="#use-the-built-in-structure-parser" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="assign-pb-for-a-single-structure">
+<h3>Assign PB for a single structure<a class="headerlink" href="#assign-pb-for-a-single-structure" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code> function is the prefered way to
+read PDB and PDBx/mmCIF files using PBxplore. This function takes a list
+of file path as argument, and yield each chain it can read from these
+files. It provides a single interface to read PDB and PDBx/mmCIF files,
+to read single model and multimodel files, and to read a single file of
+a collection of files.</p>
+<p>Here we want to read a single file with a single model and a single
+chain. Therefore, we need the first and only record that is yield by
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code>. This record contains a name for
+the chain, and the chain itself as a <code class="xref py py-class docutils literal"><span class="pre">pbxplore.structure.Chain</span></code>
+object. Note that, even if we want to read a single file, we need to
+provide it as a list to <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code>.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">structure_reader</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">([</span><span class="s">&#39;demo1_assignation/1BTA.pdb&#39;</span><span class="p">])</span>
+<span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">structure_reader</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">chain_name</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 1 chain(s) in demo1_assignation/1BTA.pdb
+demo1_assignation/1BTA.pdb | chain A
+Chain A / model : 1434 atoms
+</pre></div>
+</div>
+<p>Protein Blocks are assigned based on the dihedral angles of the
+backbone. So we need to calculate them. The
+<code class="xref py py-meth docutils literal"><span class="pre">pbxplore.structure.Chain.get_phi_psi_angles()</span></code> methods calculate
+these angles and return them in a form that can be directly provided to
+the assignement function.</p>
+<p>The dihedral angles are returned as a dictionnary. Each key of this
+dictionary is a residue number, and each value is a dictionary with the
+phi and psi angles.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">171.6556313444855</span><span class="p">},</span>
+ <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">133.80467711845586</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">153.74322760775027</span><span class="p">},</span>
+ <span class="mi">3</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">134.66175688926953</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">157.30476083095584</span><span class="p">},</span>
+ <span class="mi">4</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">144.49159910635186</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">118.59706956501037</span><span class="p">},</span>
+ <span class="mi">5</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">100.12866913978127</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">92.98634825528089</span><span class="p">},</span>
+ <span class="mi">6</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">83.48980457968895</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">104.23730726195485</span><span class="p">},</span>
+ <span class="mi">7</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">64.77163869310709</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">43.25159835828049</span><span class="p">},</span>
+ <span class="mi">8</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">44.47885842536948</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">25.89184262616925</span><span class="p">},</span>
+ <span class="mi">9</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">94.90790101955957</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">47.182577907117775</span><span class="p">},</span>
+ <span class="mi">10</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">41.31267169232996</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">133.73743399231304</span><span class="p">},</span>
+ <span class="mi">11</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">119.15122785547305</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">11.82789586402356</span><span class="p">},</span>
+ <span class="mi">12</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">174.21196552933984</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">175.87239770676175</span><span class="p">},</span>
+ <span class="mi">13</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">56.61341695443224</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">45.74767617535588</span><span class="p">},</span>
+ <span class="mi">14</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">50.78226415072095</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">45.3742585970337</span><span class="p">},</span>
+ <span class="mi">15</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">57.93584481869442</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">43.329444361460844</span><span class="p">},</span>
+ <span class="mi">16</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">55.209603541130434</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">56.47559202715399</span><span class="p">},</span>
+ <span class="mi">17</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">64.51979885245254</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">18.577118068149446</span><span class="p">},</span>
+ <span class="mi">18</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">70.24273354141468</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">55.153744337676926</span><span class="p">},</span>
+ <span class="mi">19</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">65.20648546633561</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">41.28370221159946</span><span class="p">},</span>
+ <span class="mi">20</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">58.98821952110768</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">35.78957701447905</span><span class="p">},</span>
+ <span class="mi">21</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.8659714296852</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">42.14634696303375</span><span class="p">},</span>
+ <span class="mi">22</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">67.34201665142825</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">57.40438549689628</span><span class="p">},</span>
+ <span class="mi">23</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">52.29793609141382</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.09120830346023</span><span class="p">},</span>
+ <span class="mi">24</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">61.19010445362886</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.807316930892569</span><span class="p">},</span>
+ <span class="mi">25</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">54.951586944206355</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">47.59528477656777</span><span class="p">},</span>
+ <span class="mi">26</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">69.51531755580697</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">161.10806531443862</span><span class="p">},</span>
+ <span class="mi">27</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">57.36300935545188</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">179.66365615297644</span><span class="p">},</span>
+ <span class="mi">28</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">79.91369005407893</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">18.494472196394668</span><span class="p">},</span>
+ <span class="mi">29</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">93.51717329199727</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">13.80253054655975</span><span class="p">},</span>
+ <span class="mi">30</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">38.40653214238887</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">105.85297788366393</span><span class="p">},</span>
+ <span class="mi">31</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">64.01559307951965</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.507357757886837</span><span class="p">},</span>
+ <span class="mi">32</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">50.06519606710964</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">3.604730286754302</span><span class="p">},</span>
+ <span class="mi">33</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">84.83560576923662</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">176.04877012701309</span><span class="p">},</span>
+ <span class="mi">34</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">76.65985981150652</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">36.89428882663367</span><span class="p">},</span>
+ <span class="mi">35</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.20745817863622</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">36.19018119951471</span><span class="p">},</span>
+ <span class="mi">36</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.76844188891471</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">55.88509876949212</span><span class="p">},</span>
+ <span class="mi">37</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">45.0995601497454</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">50.82304368319501</span><span class="p">},</span>
+ <span class="mi">38</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">58.512419169182465</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">56.4318511704347</span><span class="p">},</span>
+ <span class="mi">39</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">44.00775783983471</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">26.06209153795419</span><span class="p">},</span>
+ <span class="mi">40</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">79.6799641005731</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">51.3827703817916</span><span class="p">},</span>
+ <span class="mi">41</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">58.80532943671335</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">49.46425322450557</span><span class="p">},</span>
+ <span class="mi">42</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">75.73059711071141</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">3.9162670655634235</span><span class="p">},</span>
+ <span class="mi">43</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">177.14613562249534</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">60.46495675947551</span><span class="p">},</span>
+ <span class="mi">44</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">177.12658169328853</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.62887199130637</span><span class="p">},</span>
+ <span class="mi">45</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">58.436100708193806</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">149.59997847317612</span><span class="p">},</span>
+ <span class="mi">46</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">102.66050573267097</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">132.43212727859543</span><span class="p">},</span>
+ <span class="mi">47</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">114.52132755246623</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">169.33012343233455</span><span class="p">},</span>
+ <span class="mi">48</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">61.39150617820462</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">136.7035538929314</span><span class="p">},</span>
+ <span class="mi">49</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">113.17589693608565</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">156.54195412530404</span><span class="p">},</span>
+ <span class="mi">50</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">117.26440335376822</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">138.51305036902693</span><span class="p">},</span>
+ <span class="mi">51</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">120.03410170277817</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">81.75707989178757</span><span class="p">},</span>
+ <span class="mi">52</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">77.60981590398819</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">83.18451037698443</span><span class="p">},</span>
+ <span class="mi">53</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">79.65858964180552</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">111.40143302647459</span><span class="p">},</span>
+ <span class="mi">54</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">100.37011629225776</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">150.03395825502497</span><span class="p">},</span>
+ <span class="mi">55</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">49.87330458406237</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">68.74199803405018</span><span class="p">},</span>
+ <span class="mi">56</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.87938409722335</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.7355521840301</span><span class="p">},</span>
+ <span class="mi">57</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">56.20534388077749</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">35.207843043514686</span><span class="p">},</span>
+ <span class="mi">58</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">66.38284564180043</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">32.21866387324769</span><span class="p">},</span>
+ <span class="mi">59</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">94.6778115344365</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">17.686140221665553</span><span class="p">},</span>
+ <span class="mi">60</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">111.48538994784963</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">38.09776457861392</span><span class="p">},</span>
+ <span class="mi">61</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">70.64502750557983</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">62.8582975880629</span><span class="p">},</span>
+ <span class="mi">62</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">33.50588994671665</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">32.02546270762559</span><span class="p">},</span>
+ <span class="mi">63</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">128.57384077349852</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">62.57927537310066</span><span class="p">},</span>
+ <span class="mi">64</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">12.365761900396365</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">106.99327496259977</span><span class="p">},</span>
+ <span class="mi">65</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">73.68588813063124</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">32.131558860201714</span><span class="p">},</span>
+ <span class="mi">66</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">89.05260862755028</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">69.16778908477181</span><span class="p">},</span>
+ <span class="mi">67</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">77.83088301001709</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">21.564910924673597</span><span class="p">},</span>
+ <span class="mi">68</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">71.32122280651765</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">21.859413182600065</span><span class="p">},</span>
+ <span class="mi">69</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">81.4118653034867</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">55.2935117883826</span><span class="p">},</span>
+ <span class="mi">70</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">52.047970110313145</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">43.22593946145588</span><span class="p">},</span>
+ <span class="mi">71</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">59.215594114973726</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">45.283196644537554</span><span class="p">},</span>
+ <span class="mi">72</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">52.67186926130671</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">38.127901315075064</span><span class="p">},</span>
+ <span class="mi">73</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">75.00963018964649</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">30.83999517691734</span><span class="p">},</span>
+ <span class="mi">74</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">74.69878930178584</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">35.042954979175136</span><span class="p">},</span>
+ <span class="mi">75</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.22740138668189</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">37.2721834868002</span><span class="p">},</span>
+ <span class="mi">76</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">63.3253002341084</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">46.736848174955014</span><span class="p">},</span>
+ <span class="mi">77</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">62.577975558265166</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">38.836376804396195</span><span class="p">},</span>
+ <span class="mi">78</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">58.4371262613883</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">30.932534133630554</span><span class="p">},</span>
+ <span class="mi">79</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">77.25603045197096</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">28.810984281581455</span><span class="p">},</span>
+ <span class="mi">80</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">65.77402807318447</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.587861693755428</span><span class="p">},</span>
+ <span class="mi">81</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">113.27162201541087</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.067924223417435</span><span class="p">},</span>
+ <span class="mi">82</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">63.856071155072016</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">160.46313493362334</span><span class="p">},</span>
+ <span class="mi">83</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">109.29442965951228</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">65.33016925110071</span><span class="p">},</span>
+ <span class="mi">84</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">94.29902268445335</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">87.93029438989075</span><span class="p">},</span>
+ <span class="mi">85</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">52.91938395571083</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">98.897475962567</span><span class="p">},</span>
+ <span class="mi">86</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">73.44769372512917</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">114.6488125441093</span><span class="p">},</span>
+ <span class="mi">87</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">114.16119204550668</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">101.24805765454327</span><span class="p">},</span>
+ <span class="mi">88</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">96.78933556699712</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="mf">106.74340425527281</span><span class="p">},</span>
+ <span class="mi">89</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">109.02775603395975</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>The dihedral angles can be provided to the <a class="reference internal" href="../pages/assign.html#module-pbxplore.assign" title="pbxplore.assign"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.assign()</span></code></a>
+function that assigns a Protein Block to each residue, and that returns
+the PB sequence as a string. Note that the first and last two residues
+are assigned to the <code class="docutils literal"><span class="pre">Z</span></code> jocker block as some dihedral angles cannot be
+calculated.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ZZdddfklonbfklmmmmmmmmnopafklnoiaklmmmmmnoopacddddddehkllmmmmngoilmmmmmmmmmmmmnopacdcddZZ</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="assign-pb-for-several-models-of-a-single-file">
+<h3>Assign PB for several models of a single file<a class="headerlink" href="#assign-pb-for-several-models-of-a-single-file" title="Permalink to this headline">¶</a></h3>
+<p>A single PDB file can contain several models. Then, we do not want to
+read only the first chain. Instead, we want to iterate over all the
+chains.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">([</span><span class="s">&#39;demo1_assignation/2LFU.pdb&#39;</span><span class="p">]):</span>
+    <span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+    <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;* {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chain_name</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 10 chain(s) in demo1_assignation/2LFU.pdb
+* demo1_assignation/2LFU.pdb | model 1 | chain A
+  ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+* demo1_assignation/2LFU.pdb | model 2 | chain A
+  ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+* demo1_assignation/2LFU.pdb | model 3 | chain A
+  ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+* demo1_assignation/2LFU.pdb | model 4 | chain A
+  ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ
+* demo1_assignation/2LFU.pdb | model 5 | chain A
+  ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ
+* demo1_assignation/2LFU.pdb | model 6 | chain A
+  ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+* demo1_assignation/2LFU.pdb | model 7 | chain A
+  ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ
+* demo1_assignation/2LFU.pdb | model 8 | chain A
+  ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+* demo1_assignation/2LFU.pdb | model 9 | chain A
+  ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ
+* demo1_assignation/2LFU.pdb | model 10 | chain A
+  ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ
+</pre></div>
+</div>
+</div>
+<div class="section" id="assign-pb-for-a-set-of-structures">
+<h3>Assign PB for a set of structures<a class="headerlink" href="#assign-pb-for-a-set-of-structures" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code> function can also handle
+several chains from several files.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">glob</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s">&#39;demo1_assignation/*.pdb&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+    <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;* {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chain_name</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 2 chain(s) in demo1_assignation/1AY7.pdb
+* demo1_assignation/1AY7.pdb | chain A
+  ZZbjadfklmcfklmmmmmmmmnnpaafbfkgopacehlnomaccddehjaccdddddehklpnbjadcdddfbehiacddfegolaccdddfkZZ
+* demo1_assignation/1AY7.pdb | chain B
+  ZZcddfklpcbfklmmmmmmmmnopafklgoiaklmmmmmmmmpacddddddehkllmmmmnnommmmmmmmmmmmmmnopacddddZZ
+Read 1 chain(s) in demo1_assignation/1BTA.pdb
+* demo1_assignation/1BTA.pdb | chain A
+  ZZdddfklonbfklmmmmmmmmnopafklnoiaklmmmmmnoopacddddddehkllmmmmngoilmmmmmmmmmmmmnopacdcddZZ
+Read 10 chain(s) in demo1_assignation/2LFU.pdb
+* demo1_assignation/2LFU.pdb | model 1 | chain A
+  ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+* demo1_assignation/2LFU.pdb | model 2 | chain A
+  ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+* demo1_assignation/2LFU.pdb | model 3 | chain A
+  ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+* demo1_assignation/2LFU.pdb | model 4 | chain A
+  ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ
+* demo1_assignation/2LFU.pdb | model 5 | chain A
+  ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ
+* demo1_assignation/2LFU.pdb | model 6 | chain A
+  ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+* demo1_assignation/2LFU.pdb | model 7 | chain A
+  ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ
+* demo1_assignation/2LFU.pdb | model 8 | chain A
+  ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+* demo1_assignation/2LFU.pdb | model 9 | chain A
+  ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ
+* demo1_assignation/2LFU.pdb | model 10 | chain A
+  ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ
+Read 1 chain(s) in demo1_assignation/3ICH.pdb
+* demo1_assignation/3ICH.pdb | chain A
+  ZZccdfbdcdddddehjbdebjcdddddfklmmmlmmmmmmmmnopnopajeopacfbdcehibacehiamnonopgocdfkbjbdcdfblmbccfbghiacdddebehiafkbccddfbdcfklgokaccfbdcfbhklmmmmmmmpccdfkopafbacddfbgcddddfbacddddZZ
+</pre></div>
+</div>
+</div>
+<div class="section" id="assign-pb-for-frames-in-a-trajectory">
+<h3>Assign PB for frames in a trajectory<a class="headerlink" href="#assign-pb-for-frames-in-a-trajectory" title="Permalink to this headline">¶</a></h3>
+<p>PB sequences can be assigned from a trajectory. To do so, we use the
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_trajectory()</span></code> function that takes the path
+to a trajectory and the path to the corresponding topology as argument.
+Any file formats readable by MDAnalysis can be used. Except for its
+arguments, <code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_trajectory()</span></code> works the same as
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.chains_from_files()</span></code>.</p>
+<p>** Note that MDAnalysis is required to use this feature. **</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">trajectory</span> <span class="o">=</span> <span class="s">&#39;demo2/barstar_md_traj.xtc&#39;</span>
+<span class="n">topology</span> <span class="o">=</span> <span class="s">&#39;demo2/barstar_md_traj.gro&#39;</span>
+<span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_trajectory</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">topology</span><span class="p">):</span>
+    <span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+    <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;* {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chain_name</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>* demo2/barstar_md_traj.xtc | frame 0
+  ZZdddfklpmbfklmmmmmmmmnopafklgoiaklmmmmmmmmpacddddddehklmmmmmoghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 1
+  ZZdddfklpcbfklmmmmmmmmnopafkbghiaklmmmmmmmmpccddddddehklmmmmmcehilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 2
+  ZZdddfklpcbfklmmmmmmmmnopafklgoiaklmmmmmmmmpccddddddehklmmmmnpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 3
+  ZZdddfklccbfklmmmmmmmmnopafkbghiaklmmmmmnopaccddddddehkllmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 4
+  ZZdddfklpmbfklmmmmmmmmnopafklgoiaklmmmmmnopaccddddddehklmmmmmpghjllmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 5
+  ZZdddfklpmbfklmmmmmmmmnopafkbgoiaklmmmmmnopbacddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 6
+  ZZdddfklpmblmlmmmmmmmmnopafkbghiaklmmmmmnopbacddddddehjllmmmnoghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 7
+  ZZdddfklcfblmlmmmmmmmmnopafkbgoiaklmmmmmmmmcacddddddehklmmmmnpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 8
+  ZZdddfklpgbfklmmmmmmmmnopafklgoiaklmmmmmnojaccddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 9
+  ZZdddfklpcbfklmmmmmmmmnopafklgoiaklmmmmmmombacddddddehkllmmmnbghilkmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 10
+  ZZdddfklmmblklmmmmmmmmnopafkbgoiaklmmmmmmmmppcddddddehkllmmmmbghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 11
+  ZZddefklpcbfklmmmmmmmmnopafklghiaklmmmmmnopbacddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 12
+  ZZdddfklcfbfklmmmmmmmmnopafklgoiaklmmmmmmmmpacddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 13
+  ZZdddfklpmbfklmmmmmmmmnopafklgoiaklmmmmmnopbacddddddehklmmmmmpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 14
+  ZZdddfklpmbfklmmmmmmmmnopafklghiaklmmmmmmmmpccddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 15
+  ZZdddfklpcbfklmmmmmmmmnopafklghiaklmmmmmmmmpccddddddehklmmmmmbghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 16
+  ZZdddfklpmbfklmmmmmmmmnopafkbghiaklmmmmmnoobacddddddehkllmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 17
+  ZZdddfklombfklmmmmmmmmnopafkbghiaklmmmmmnopbacddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 18
+  ZZdddfklpmbfklmmmmmmmmnopafklghiaklmmmmmmmmpacddddddehklmmmmmpghilmmmmmmmmmmmmnopcdddddZZ
+* demo2/barstar_md_traj.xtc | frame 19
+  ZZdddfklpmblmlmmmmmmmmnopafkbghiaklmmmmmnopbacddddddehklmmmmnbghijmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 20
+  ZZdddfklcfbfklmmmmmmmmnopafklgoiaklmmmmmmmmpacddddddehkllmmmmmghijklmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 21
+  ZZdddfklpcbfklmmmmmmmmnopafklghiaklmmmmmmmmpccddddddehklmmmmmpghijklmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 22
+  ZZdddfklpmbfklmmmmmmmmnopafkbghiaklmmmmmmoopacddddddehklmmmmmmghijmlmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 23
+  ZZdddfklpfblmlmmmmmmmmnopafkbgoiaklmmmmmmombacddddddehklmmmmmmghijmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 24
+  ZZdddfklpmbfklmmmmmmmmnopafkbccdfklmmmmmnopaccddddddehklmmmmmbghijklmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 25
+  ZZdddfklpgbfklmmmmmmmmnopafkbccdfklmmmmmmmmpacddddddehklmmmmmpghklmmmmmmmmmmmmnopadddddZZ
+* demo2/barstar_md_traj.xtc | frame 26
+  ZZdddfklpmbfklmmmmmmmmnopafkbccdfklmmmmmmnmpacddddddehklmmmmmbghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 27
+  ZZdddfklpcbfklmmmmmmmmnopafkbccbfklmmmmmmmmpccddddddehklmmmmmbghillmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 28
+  ZZdddfklmmbfmlmmmmmmmmnopafkbccdfklmmmmmmmmpacddddddehkllmmmmpghklmmmmmmmmmmmmnopadddddZZ
+* demo2/barstar_md_traj.xtc | frame 29
+  ZZdddfkbpcbfklmmmmmmmmnopafkbccbfklmmmmmnombacddddddehkllmmmmoghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 30
+  ZZdddfklpmbfklmmmmmmmmnopafkbccbfklmmmmmnombccddddddehjlmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 31
+  ZZdddfklpmbfklmmmmmmmmnopafklccdfklmmmmmnopaacddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 32
+  ZZdddfklcfbfklmmmmmmmmnopafkbcbdfklmmmmmmmmpacddddddehklmmmmmpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 33
+  ZZdddfklpcbfmlmmmmmmmmnopafkbckbfklmmmmmmmmmccddddddehjlmmmmmoghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 34
+  ZZdddfklcfbfklmmmmmmmmnopafklccdfklmmmmmmmmpccddddddehklmmmmmpghilmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 35
+  ZZdddfklcfbfklmmmmmmmmnopafkbccdfklmmmmmmmmppcddddddehklmmmmmpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 36
+  ZZdddfklpgbjklmmmmmmmmnopafkbccbfklmmmmmmmmpacddddddehklmmmmmoghjlmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 37
+  ZZdddfklpfbfklmmmmmmmmnopafklccbfklmmmmmnopbacddddddehklmmmmmoghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 38
+  ZZdddfklccbfklmmmmmmmmnopafkbckbfklmmmmmmompacddddddehklmmmmmoghjlmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 39
+  ZZdddfklpmblmlmmmmmmmmnopafkbccdfklmmmmmmmmcacddddddehklmmmmmoghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 40
+  ZZdddfklcfbfmlmmmmmmmmnopafkbccbfklmmmmmmmmmccddddddehklmmmmmpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 41
+  ZZdddfklpmbfklmmmmmmmmnopafkbccdfklmmmmmmnopacddddddehklmmmmmpghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 42
+  ZZdddfklpmblmlmmmmmmmmnopafkbccdfklmmmmmmgoiacddddddehklmmmmmmgoklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 43
+  ZZdddfklpcbfklmmmmmmmmnopafklccdfklmmmmmmmmpacddddddehklmmmmmmghklmmmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 44
+  ZZdddfklcfbfklmmmmmmmmnopafkbccdfklmmmmmmmmgccddddddehjllmmmmmghiaklmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 45
+  ZZdddfklcfbfmlmmmmmmmmnopafkbccbfklmmmmmmmmcccddddddehklmmmmmpghiamlmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 46
+  ZZdddfkbcfbfklmmmmmmmmnopafkbccdfklmmmmmmmmpacddddddehkllmmmmpghijmlmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 47
+  ZZdddfkbcfbfklmmmmmmmmnopafkbccdfklmmmmmmmmpccddddddehklmmmmmpghijklmmmmmmmmmmnopadddddZZ
+* demo2/barstar_md_traj.xtc | frame 48
+  ZZdddfkbcfbfklmmmmmmmmnopafkbccdfklmmmmmmomcacddddddehkllmmmmpghilmlmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 49
+  ZZdddffbcfbfklmmmmmmmmnopafkbccbfklmmmmmmnmpacddddddehklmmmmmpghijklmmmmmmmmmmnopacddddZZ
+* demo2/barstar_md_traj.xtc | frame 50
+  ZZdddfklgfbfklmmmmmmmmnopafklccdfklmmmmmmmmmccddddddehklmmmmmpghijmmmmmmmmmmmmnopacddddZZ
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="use-a-different-structure-parser">
+<h2>Use a different structure parser<a class="headerlink" href="#use-a-different-structure-parser" title="Permalink to this headline">¶</a></h2>
+<p>Providing the dihedral angles can be formated as expected by
+<a class="reference internal" href="../pages/assign.html#module-pbxplore.assign" title="pbxplore.assign"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.assign()</span></code></a>, the source of these angles does not matter.
+For instance, other PDB parser can be used with PBxplore.</p>
+<div class="section" id="biopython">
+<h3>BioPython<a class="headerlink" href="#biopython" title="Permalink to this headline">¶</a></h3>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">Bio.PDB</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">Bio</span><span class="o">.</span><span class="n">PDB</span><span class="o">.</span><span class="n">PDBParser</span><span class="p">()</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="s">&quot;demo1_assignation/2LFU&quot;</span><span class="p">,</span>
+                                               <span class="s">&quot;demo1_assignation/2LFU.pdb&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+        <span class="n">polypeptides</span> <span class="o">=</span> <span class="n">Bio</span><span class="o">.</span><span class="n">PDB</span><span class="o">.</span><span class="n">PPBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_peptides</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">poly_index</span><span class="p">,</span> <span class="n">poly</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">polypeptides</span><span class="p">):</span>
+            <span class="n">dihedral_list</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">get_phi_psi_list</span><span class="p">()</span>
+            <span class="n">dihedrals</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">resid</span><span class="p">,</span> <span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dihedral_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">phi</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">phi</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">psi</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">psi</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">psi</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+                <span class="n">dihedrals</span><span class="p">[</span><span class="n">resid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;phi&#39;</span><span class="p">:</span> <span class="n">phi</span><span class="p">,</span> <span class="s">&#39;psi&#39;</span><span class="p">:</span> <span class="n">psi</span><span class="p">}</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+        <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>&lt;Model id=0&gt; &lt;Chain id=A&gt;
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+&lt;Model id=1&gt; &lt;Chain id=A&gt;
+ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+&lt;Model id=2&gt; &lt;Chain id=A&gt;
+ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+&lt;Model id=3&gt; &lt;Chain id=A&gt;
+ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ
+&lt;Model id=4&gt; &lt;Chain id=A&gt;
+ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ
+&lt;Model id=5&gt; &lt;Chain id=A&gt;
+ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+&lt;Model id=6&gt; &lt;Chain id=A&gt;
+ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ
+&lt;Model id=7&gt; &lt;Chain id=A&gt;
+ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+&lt;Model id=8&gt; &lt;Chain id=A&gt;
+ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ
+&lt;Model id=9&gt; &lt;Chain id=A&gt;
+ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PBxplore API cookbook — PB assignation</a><ul>
+<li><a class="reference internal" href="#use-the-built-in-structure-parser">Use the built-in structure parser</a><ul>
+<li><a class="reference internal" href="#assign-pb-for-a-single-structure">Assign PB for a single structure</a></li>
+<li><a class="reference internal" href="#assign-pb-for-several-models-of-a-single-file">Assign PB for several models of a single file</a></li>
+<li><a class="reference internal" href="#assign-pb-for-a-set-of-structures">Assign PB for a set of structures</a></li>
+<li><a class="reference internal" href="#assign-pb-for-frames-in-a-trajectory">Assign PB for frames in a trajectory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-a-different-structure-parser">Use a different structure parser</a><ul>
+<li><a class="reference internal" href="#biopython">BioPython</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to PBxplore API&#8217;s documentation!</a></li>
+      <li>Next: <a href="../pages/PB.html" title="next chapter">Protein Blocks related data &#8212; <code class="docutils literal"><span class="pre">pbxplore.PB</span></code></a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/notebooks/Assignement.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="../_sources/notebooks/Assignement.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
