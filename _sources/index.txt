@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 1
 
    ./notebooks/Assignement
+   ./notebooks/WritePB
    ./pages/PB
    ./pages/structure
    ./pages/assign

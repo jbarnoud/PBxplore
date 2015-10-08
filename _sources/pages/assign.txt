@@ -1,1 +1,1 @@
-.. automodule:: pbxplore.assign
+.. automodule:: pbxplore.assignment
