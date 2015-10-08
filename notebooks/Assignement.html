@@ -41,11 +41,30 @@
             
   <div class="section" id="pbxplore-api-cookbook-pb-assignation">
 <h1>PBxplore API cookbook — PB assignation<a class="headerlink" href="#pbxplore-api-cookbook-pb-assignation" title="Permalink to this headline">¶</a></h1>
-<p>We hereby demonstrate how to use the PBxplore API to assign PB
-sequences.</p>
-<p>This page is initialy a jupyter notebook. You can see a <a class="reference external" href="Assignement_.html">notebook HTML
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#use-the-built-in-structure-parser" id="id1">Use the built-in structure parser</a><ul>
+<li><a class="reference internal" href="#assign-pb-for-a-single-structure" id="id2">Assign PB for a single structure</a></li>
+<li><a class="reference internal" href="#assign-pb-for-several-models-of-a-single-file" id="id3">Assign PB for several models of a single file</a></li>
+<li><a class="reference internal" href="#assign-pb-for-a-set-of-structures" id="id4">Assign PB for a set of structures</a></li>
+<li><a class="reference internal" href="#assign-pb-for-frames-in-a-trajectory" id="id5">Assign PB for frames in a trajectory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-a-different-structure-parser" id="id6">Use a different structure parser</a><ul>
+<li><a class="reference internal" href="#biopython" id="id7">BioPython</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This page is initialy a jupyter notebook. You can see a <a class="reference external" href="Assignement_.html">notebook HTML
 render</a> of it or download the <a class="reference external" href="Assignement.ipynb">notebook
 itself</a>.</p>
+</div>
+<p>We hereby demonstrate how to use the PBxplore API to assign PB
+sequences.</p>
 <div class="code python highlight-python"><div class="highlight"><pre>from __future__ import print_function, division
 from pprint import pprint
 %cd ../../../

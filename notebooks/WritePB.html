@@ -41,12 +41,24 @@
             
   <div class="section" id="pbxplore-api-cookbook-writing-pb-in-file">
 <h1>PBxplore API cookbook — Writing PB in file<a class="headerlink" href="#pbxplore-api-cookbook-writing-pb-in-file" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#fasta-files" id="id1">Fasta files</a></li>
+<li><a class="reference internal" href="#flat-records" id="id2">Flat records</a></li>
+<li><a class="reference internal" href="#dihedral-angles" id="id3">Dihedral angles</a></li>
+<li><a class="reference internal" href="#read-fasta-files" id="id4">Read fasta files</a></li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This page is initialy a jupyter notebook. You can see a <a class="reference external" href="WritePB_.html">notebook HTML
+render</a> of it or download the <a class="reference external" href="WritePB.ipynb">notebook
+itself</a>.</p>
+</div>
 <p>The PBxplore API allows to write all the files the command line tools
 can. This includes the outputs of PBassign. The functions to handle
 several file formats are available in the <a class="reference internal" href="../pages/io.html#module-pbxplore.io" title="pbxplore.io"><code class="xref py py-mod docutils literal"><span class="pre">pbxplore.io</span></code></a> module.</p>
-<p>This page is initialy a jupyter notebook. You can see a <a class="reference external" href="WritePB_.html">notebook HTML
-render</a> of it or download the <a class="reference external" href="WritePB.ipynb">notebook
-itself</a>.</p>
 <div class="code python highlight-python"><div class="highlight"><pre>from __future__ import print_function, division
 from pprint import pprint
 %cd ../../../

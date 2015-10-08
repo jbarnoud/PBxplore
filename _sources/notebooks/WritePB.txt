@@ -1,13 +1,20 @@
 PBxplore API cookbook — Writing PB in file
 ==========================================
 
+.. contents:: Table of Contents
+   :local:
+   :backlinks: none
+
+.. note::
+
+   This page is initialy a jupyter notebook. You can see a `notebook HTML
+   render <WritePB_.html>`__ of it or download the `notebook
+   itself <WritePB.ipynb>`__.
+
+
 The PBxplore API allows to write all the files the command line tools
 can. This includes the outputs of PBassign. The functions to handle
 several file formats are available in the :mod:`pbxplore.io` module.
-
-This page is initialy a jupyter notebook. You can see a `notebook HTML
-render <WritePB_.html>`__ of it or download the `notebook
-itself <WritePB.ipynb>`__.
 
 .. code:: python
 

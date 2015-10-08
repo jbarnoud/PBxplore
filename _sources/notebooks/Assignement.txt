@@ -1,12 +1,19 @@
 PBxplore API cookbook — PB assignation
 ======================================
 
+.. contents:: Table of Contents
+   :local:
+   :backlinks: none
+
+.. note::
+
+   This page is initialy a jupyter notebook. You can see a `notebook HTML
+   render <Assignement_.html>`__ of it or download the `notebook
+   itself <Assignement.ipynb>`__.
+
+
 We hereby demonstrate how to use the PBxplore API to assign PB
 sequences.
-
-This page is initialy a jupyter notebook. You can see a `notebook HTML
-render <Assignement_.html>`__ of it or download the `notebook
-itself <Assignement.ipynb>`__.
 
 .. code:: python
 
