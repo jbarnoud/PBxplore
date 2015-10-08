@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PBxplore API cookbook — Writing PB in file &mdash; PBxplore API 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PBxplore API 1.1 documentation" href="../index.html" />
+    <link rel="next" title="Protein Blocks related data — pbxplore.PB" href="../pages/PB.html" />
+    <link rel="prev" title="PBxplore API cookbook — PB assignation" href="Assignement.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pbxplore-api-cookbook-writing-pb-in-file">
+<h1>PBxplore API cookbook — Writing PB in file<a class="headerlink" href="#pbxplore-api-cookbook-writing-pb-in-file" title="Permalink to this headline">¶</a></h1>
+<p>The PBxplore API allows to write all the files the command line tools
+can. This includes the outputs of PBassign. The functions to handle
+several file formats are available in the <a class="reference internal" href="../pages/io.html#module-pbxplore.io" title="pbxplore.io"><code class="xref py py-mod docutils literal"><span class="pre">pbxplore.io</span></code></a> module.</p>
+<p>This page is initialy a jupyter notebook. You can see a <a class="reference external" href="WritePB_.html">notebook HTML
+render</a> of it or download the <a class="reference external" href="WritePB.ipynb">notebook
+itself</a>.</p>
+<div class="code python highlight-python"><div class="highlight"><pre>from __future__ import print_function, division
+from pprint import pprint
+%cd ../../../
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>/Users/jon/dev/PBxplore
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pbxplore</span> <span class="kn">as</span> <span class="nn">pbx</span>
+</pre></div>
+</div>
+<div class="section" id="fasta-files">
+<h2>Fasta files<a class="headerlink" href="#fasta-files" title="Permalink to this headline">¶</a></h2>
+<p>The most common way to save PB sequences is to write them in a fasta
+file.</p>
+<p>PBxplore allows two ways to write fasta files. The sequences can be
+written either all at once or one at a time. To write a batch of
+sequences at once, we need a list of sequences and a list of the
+corresponding sequence names. The writing function here is
+<a class="reference internal" href="../pages/io.html#pbxplore.io.write_fasta" title="pbxplore.io.write_fasta"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.write_fasta()</span></code></a>.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">pb_sequences</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">([</span><span class="s">&#39;demo1_assignation/2LFU.pdb&#39;</span><span class="p">]):</span>
+    <span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+    <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+    <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain_name</span><span class="p">)</span>
+    <span class="n">pb_sequences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pb_seq</span><span class="p">)</span>
+
+<span class="n">pprint</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
+<span class="n">pprint</span><span class="p">(</span><span class="n">pb_sequences</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;output.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="n">pbx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write_fasta</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">pb_sequences</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 10 chain(s) in demo1_assignation/2LFU.pdb
+[&#39;demo1_assignation/2LFU.pdb | model 1 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 2 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 3 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 4 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 5 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 6 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 7 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 8 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 9 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 10 | chain A&#39;]
+[&#39;ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ&#39;,
+ &#39;ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ&#39;,
+ &#39;ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ&#39;,
+ &#39;ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ&#39;,
+ &#39;ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ&#39;,
+ &#39;ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ&#39;,
+ &#39;ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ&#39;,
+ &#39;ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ&#39;,
+ &#39;ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ&#39;,
+ &#39;ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ&#39;]
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre>!cat output.fasta
+!rm output.fasta
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>&gt;demo1_assignation/2LFU.pdb | model 1 | chain A
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+klmaccddddddfbgniaghiapaddddddfklnoambZZ
+&gt;demo1_assignation/2LFU.pdb | model 2 | chain A
+ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghia
+dddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddf
+klpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+&gt;demo1_assignation/2LFU.pdb | model 3 | chain A
+ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpa
+cddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddef
+klpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+&gt;demo1_assignation/2LFU.pdb | model 4 | chain A
+ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddd
+dddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddf
+klmpccdddddddehiabghehiaddddddfklpccfkZZ
+&gt;demo1_assignation/2LFU.pdb | model 5 | chain A
+ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadd
+dddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddf
+klmaccddddddfbgghiafehiadddddddfklpacfZZ
+&gt;demo1_assignation/2LFU.pdb | model 6 | chain A
+ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadd
+dddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddf
+klmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+&gt;demo1_assignation/2LFU.pdb | model 7 | chain A
+ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapa
+dddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddf
+klpaccdddddfklmaacdfehpadddddehjblckknZZ
+&gt;demo1_assignation/2LFU.pdb | model 8 | chain A
+ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblba
+cddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddef
+klpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+&gt;demo1_assignation/2LFU.pdb | model 9 | chain A
+ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdc
+dddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddf
+klmpccddddehiacbcbdfehpadddddehjklmklmZZ
+&gt;demo1_assignation/2LFU.pdb | model 10 | chain A
+ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapacc
+dddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddf
+klpaccddddddfbcfbacfehpadddddddekpghiaZZ
+</pre></div>
+</div>
+<p>Sequences can be written once at a time using the
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.fasta._write_fasta_entry()</span></code> function.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;output.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">([</span><span class="s">&#39;demo1_assignation/2LFU.pdb&#39;</span><span class="p">]):</span>
+        <span class="n">dihedrals</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">()</span>
+        <span class="n">pb_seq</span> <span class="o">=</span> <span class="n">pbx</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">)</span>
+        <span class="n">pbx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fasta</span><span class="o">.</span><span class="n">_write_fasta_entry</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">pb_seq</span><span class="p">,</span> <span class="n">chain_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 10 chain(s) in demo1_assignation/2LFU.pdb
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre>!cat output.fasta
+!rm output.fasta
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>&gt;demo1_assignation/2LFU.pdb | model 1 | chain A
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+klmaccddddddfbgniaghiapaddddddfklnoambZZ
+&gt;demo1_assignation/2LFU.pdb | model 2 | chain A
+ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghia
+dddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddf
+klpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+&gt;demo1_assignation/2LFU.pdb | model 3 | chain A
+ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpa
+cddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddef
+klpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+&gt;demo1_assignation/2LFU.pdb | model 4 | chain A
+ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddd
+dddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddf
+klmpccdddddddehiabghehiaddddddfklpccfkZZ
+&gt;demo1_assignation/2LFU.pdb | model 5 | chain A
+ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadd
+dddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddf
+klmaccddddddfbgghiafehiadddddddfklpacfZZ
+&gt;demo1_assignation/2LFU.pdb | model 6 | chain A
+ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadd
+dddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddf
+klmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+&gt;demo1_assignation/2LFU.pdb | model 7 | chain A
+ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapa
+dddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddf
+klpaccdddddfklmaacdfehpadddddehjblckknZZ
+&gt;demo1_assignation/2LFU.pdb | model 8 | chain A
+ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblba
+cddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddef
+klpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+&gt;demo1_assignation/2LFU.pdb | model 9 | chain A
+ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdc
+dddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddf
+klmpccddddehiacbcbdfehpadddddehjklmklmZZ
+&gt;demo1_assignation/2LFU.pdb | model 10 | chain A
+ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapacc
+dddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddf
+klpaccddddddfbcfbacfehpadddddddekpghiaZZ
+</pre></div>
+</div>
+<p>By default, the lines in fasta files are wrapped at 60 caracters as
+defined in <code class="xref py py-const docutils literal"><span class="pre">pbxplore.io.fasta.FASTA_WIDTH</span></code>. Both
+<a class="reference internal" href="../pages/io.html#pbxplore.io.write_fasta" title="pbxplore.io.write_fasta"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.write_fasta()</span></code></a> and
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.fasta._write_fasta_entry()</span></code> have a <code class="docutils literal"><span class="pre">width</span></code>
+optionnal argument that allows to control the wrapping.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">pb_sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;output.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">width</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">):</span>
+        <span class="n">pbx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fasta</span><span class="o">.</span><span class="n">_write_fasta_entry</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">pb_sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="s">&#39;width={} blocks&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">width</span><span class="p">),</span>
+                                        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre>!cat output.fasta
+!rm output.fasta
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>&gt;width=60 blocks
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+klmaccddddddfbgniaghiapaddddddfklnoambZZ
+&gt;width=70 blocks
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddf
+klopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniagh
+iapaddddddfklnoambZZ
+&gt;width=80 blocks
+ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopaddddd
+fhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+</pre></div>
+</div>
+</div>
+<div class="section" id="flat-records">
+<h2>Flat records<a class="headerlink" href="#flat-records" title="Permalink to this headline">¶</a></h2>
+<p>If we do not want to wrap the PB sequences, we can write a flat file.
+Flat files contain raw sequences, one per line, with no header. Such
+file can be easily written using the <code class="docutils literal"><span class="pre">print</span></code> built-in. Yet, PBxplore
+offers a quick way to write flat records of a list of sequences: the
+<a class="reference internal" href="../pages/io.html#pbxplore.io.write_flat" title="pbxplore.io.write_flat"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.write_flat()</span></code></a> function.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;output.flat&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="n">pbx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write_flat</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">pb_sequences</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre>!cat output.flat
+!rm output.flat
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ</span>
+<span class="n">ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ</span>
+<span class="n">ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ</span>
+<span class="n">ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ</span>
+<span class="n">ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ</span>
+<span class="n">ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ</span>
+<span class="n">ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ</span>
+<span class="n">ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ</span>
+<span class="n">ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ</span>
+<span class="n">ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dihedral-angles">
+<h2>Dihedral angles<a class="headerlink" href="#dihedral-angles" title="Permalink to this headline">¶</a></h2>
+<p>One needs the phi and psi dihedral angles to assign protein block
+sequences. Having these angles, it is sometime convenient to store them
+in a file. This can be done using the
+<code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.write_phi_psi()</span></code> function. This function works like
+the <a class="reference internal" href="../pages/io.html#pbxplore.io.write_fasta" title="pbxplore.io.write_fasta"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.write_fasta()</span></code></a> one as it takes 3 arguments: the
+output file, a list of dihedral angle records, and a list of names
+corresponding to each record.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="c"># Store the dihedral angles for all chains in a PDB file.</span>
+<span class="c"># Store also the chain name for all chains.</span>
+<span class="n">all_dihedrals</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">chain_name</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">pbx</span><span class="o">.</span><span class="n">chains_from_files</span><span class="p">([</span><span class="s">&#39;demo1_assignation/2LFU.pdb&#39;</span><span class="p">]):</span>
+    <span class="n">all_dihedrals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">get_phi_psi_angles</span><span class="p">())</span>
+    <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain_name</span><span class="p">)</span>
+
+<span class="c"># Write the dihedral angles in a file</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;output.phipsi&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="n">pbx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write_phipsi</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">all_dihedrals</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 10 chain(s) in demo1_assignation/2LFU.pdb
+</pre></div>
+</div>
+<p>The output is formated with one line per residue. The first columns
+repeat the name given for the chain, then is the residue id followed by
+the phi and the psi angle. If an angle is not defined, &#8216;None&#8217; is written
+instead.</p>
+<div class="code python highlight-python"><div class="highlight"><pre>!head output.phipsi
+!tail output.phipsi
+!rm output.phipsi
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>demo1_assignation/2LFU.pdb | model 1 | chain A    276     None    44.77
+demo1_assignation/2LFU.pdb | model 1 | chain A    277   -81.67    15.27
+demo1_assignation/2LFU.pdb | model 1 | chain A    278   -79.03   -21.52
+demo1_assignation/2LFU.pdb | model 1 | chain A    279  -144.43    64.08
+demo1_assignation/2LFU.pdb | model 1 | chain A    280   -84.23   144.90
+demo1_assignation/2LFU.pdb | model 1 | chain A    281    70.83   -64.01
+demo1_assignation/2LFU.pdb | model 1 | chain A    282  -107.77    93.35
+demo1_assignation/2LFU.pdb | model 1 | chain A    283   -71.42   108.03
+demo1_assignation/2LFU.pdb | model 1 | chain A    284   -72.99    99.31
+demo1_assignation/2LFU.pdb | model 1 | chain A    285   -92.93     2.32
+demo1_assignation/2LFU.pdb | model 10 | chain A    426   -88.16   127.99
+demo1_assignation/2LFU.pdb | model 10 | chain A    427  -107.40  -161.76
+demo1_assignation/2LFU.pdb | model 10 | chain A    428   -72.12   -14.94
+demo1_assignation/2LFU.pdb | model 10 | chain A    429    66.62   -81.17
+demo1_assignation/2LFU.pdb | model 10 | chain A    430  -141.67   111.76
+demo1_assignation/2LFU.pdb | model 10 | chain A    431   -69.37   141.19
+demo1_assignation/2LFU.pdb | model 10 | chain A    432    76.08   -75.91
+demo1_assignation/2LFU.pdb | model 10 | chain A    433  -149.23   167.34
+demo1_assignation/2LFU.pdb | model 10 | chain A    434   -63.43   -27.06
+demo1_assignation/2LFU.pdb | model 10 | chain A    435  -166.70     None
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-fasta-files">
+<h2>Read fasta files<a class="headerlink" href="#read-fasta-files" title="Permalink to this headline">¶</a></h2>
+<p>We want to read sequences that we wrote in files. PBxplore provides a
+function to read fasta files: the <a class="reference internal" href="../pages/io.html#pbxplore.io.read_fasta" title="pbxplore.io.read_fasta"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.read_fasta()</span></code></a>
+function.</p>
+<div class="code python highlight-python"><div class="highlight"><pre>def pdb_to_fasta_pb(pdb_path, fasta_path):
+    &quot;&quot;&quot;
+    Write a fasta file with all the PB sequences from a PDB
+    &quot;&quot;&quot;
+    with open(fasta_path, &#39;w&#39;) as outfile:
+        for chain_name, chain in pbx.chains_from_files([pdb_path]):
+            dihedrals = chain.get_phi_psi_angles()
+            pb_seq = pbx.assign(dihedrals)
+            pbx.io.fasta._write_fasta_entry(outfile, pb_seq, chain_name)
+
+# Write a fasta file
+pdb_to_fasta_pb(&#39;demo1_assignation/2LFU.pdb&#39;, &#39;output.fasta&#39;)
+
+# Read a list of headers and a list of sequences from a fasta file
+names, sequences = pbx.io.read_fasta(&#39;output.fasta&#39;)
+
+print(&#39;names:&#39;)
+pprint(names)
+print(&#39;sequences:&#39;)
+pprint(sequences)
+
+!rm output.fasta
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 10 chain(s) in demo1_assignation/2LFU.pdb
+read 10 sequences in output.fasta
+names:
+[&#39;demo1_assignation/2LFU.pdb | model 1 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 2 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 3 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 4 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 5 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 6 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 7 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 8 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 9 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 10 | chain A&#39;]
+sequences:
+[&#39;ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ&#39;,
+ &#39;ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ&#39;,
+ &#39;ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ&#39;,
+ &#39;ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ&#39;,
+ &#39;ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ&#39;,
+ &#39;ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ&#39;,
+ &#39;ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ&#39;,
+ &#39;ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ&#39;,
+ &#39;ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ&#39;,
+ &#39;ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ&#39;]
+</pre></div>
+</div>
+<p>If the sequences we want to read are spread amongst several fasta files,
+then we can use the <a class="reference internal" href="../pages/io.html#pbxplore.io.read_several_fasta" title="pbxplore.io.read_several_fasta"><code class="xref py py-func docutils literal"><span class="pre">pbxplore.io.read_several_fasta()</span></code></a> function
+that takes a list of fasta file path as argument instead of a single
+path.</p>
+<div class="code python highlight-python"><div class="highlight"><pre># Write several fasta files
+pdb_to_fasta_pb(&#39;demo1_assignation/1BTA.pdb&#39;, &#39;1BTA.fasta&#39;)
+pdb_to_fasta_pb(&#39;demo1_assignation/2LFU.pdb&#39;, &#39;2FLU.fasta&#39;)
+
+# Read the fasta files
+names, sequences = pbx.io.read_several_fasta([&#39;1BTA.fasta&#39;, &#39;2FLU.fasta&#39;])
+
+# Print the first entries
+print(&#39;names:&#39;)
+pprint(names[:5])
+print(&#39;sequences:&#39;)
+pprint(sequences[:5])
+
+!rm 1BTA.fasta 2FLU.fasta
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Read 1 chain(s) in demo1_assignation/1BTA.pdb
+Read 10 chain(s) in demo1_assignation/2LFU.pdb
+read 1 sequences in 1BTA.fasta
+read 10 sequences in 2FLU.fasta
+names:
+[&#39;demo1_assignation/1BTA.pdb | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 1 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 2 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 3 | chain A&#39;,
+ &#39;demo1_assignation/2LFU.pdb | model 4 | chain A&#39;]
+sequences:
+[&#39;ZZdddfklonbfklmmmmmmmmnopafklnoiaklmmmmmnoopacddddddehkllmmmmngoilmmmmmmmmmmmmnopacdcddZZ&#39;,
+ &#39;ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ&#39;,
+ &#39;ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ&#39;,
+ &#39;ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ&#39;,
+ &#39;ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PBxplore API cookbook — Writing PB in file</a><ul>
+<li><a class="reference internal" href="#fasta-files">Fasta files</a></li>
+<li><a class="reference internal" href="#flat-records">Flat records</a></li>
+<li><a class="reference internal" href="#dihedral-angles">Dihedral angles</a></li>
+<li><a class="reference internal" href="#read-fasta-files">Read fasta files</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Assignement.html" title="previous chapter">PBxplore API cookbook — PB assignation</a></li>
+      <li>Next: <a href="../pages/PB.html" title="next chapter">Protein Blocks related data &#8212; <code class="docutils literal"><span class="pre">pbxplore.PB</span></code></a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/notebooks/WritePB.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Pierre Poulain, and Alexandre G. deBrevern.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="../_sources/notebooks/WritePB.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

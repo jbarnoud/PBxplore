@@ -1,0 +1,424 @@
+PBxplore API cookbook — Writing PB in file
+==========================================
+
+The PBxplore API allows to write all the files the command line tools
+can. This includes the outputs of PBassign. The functions to handle
+several file formats are available in the :mod:`pbxplore.io` module.
+
+This page is initialy a jupyter notebook. You can see a `notebook HTML
+render <WritePB_.html>`__ of it or download the `notebook
+itself <WritePB.ipynb>`__.
+
+.. code:: python
+
+    from __future__ import print_function, division
+    from pprint import pprint
+    %cd ../../../
+
+::
+
+    /Users/jon/dev/PBxplore
+
+.. code:: python
+
+    import pbxplore as pbx
+
+Fasta files
+-----------
+
+The most common way to save PB sequences is to write them in a fasta
+file.
+
+PBxplore allows two ways to write fasta files. The sequences can be
+written either all at once or one at a time. To write a batch of
+sequences at once, we need a list of sequences and a list of the
+corresponding sequence names. The writing function here is
+:func:`pbxplore.io.write_fasta`.
+
+.. code:: python
+
+    names = []
+    pb_sequences = []
+    for chain_name, chain in pbx.chains_from_files(['demo1_assignation/2LFU.pdb']):
+        dihedrals = chain.get_phi_psi_angles()
+        pb_seq = pbx.assign(dihedrals)
+        names.append(chain_name)
+        pb_sequences.append(pb_seq)
+
+    pprint(names)
+
+    pprint(pb_sequences)
+
+    with open('output.fasta', 'w') as outfile:
+        pbx.io.write_fasta(outfile, pb_sequences, names)
+
+::
+
+    Read 10 chain(s) in demo1_assignation/2LFU.pdb
+    ['demo1_assignation/2LFU.pdb | model 1 | chain A',
+     'demo1_assignation/2LFU.pdb | model 2 | chain A',
+     'demo1_assignation/2LFU.pdb | model 3 | chain A',
+     'demo1_assignation/2LFU.pdb | model 4 | chain A',
+     'demo1_assignation/2LFU.pdb | model 5 | chain A',
+     'demo1_assignation/2LFU.pdb | model 6 | chain A',
+     'demo1_assignation/2LFU.pdb | model 7 | chain A',
+     'demo1_assignation/2LFU.pdb | model 8 | chain A',
+     'demo1_assignation/2LFU.pdb | model 9 | chain A',
+     'demo1_assignation/2LFU.pdb | model 10 | chain A']
+    ['ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ',
+     'ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ',
+     'ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ',
+     'ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ',
+     'ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ',
+     'ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ',
+     'ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ',
+     'ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ',
+     'ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ',
+     'ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ']
+
+.. code:: python
+
+    !cat output.fasta
+    !rm output.fasta
+
+::
+
+    >demo1_assignation/2LFU.pdb | model 1 | chain A
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+    dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+    klmaccddddddfbgniaghiapaddddddfklnoambZZ
+    >demo1_assignation/2LFU.pdb | model 2 | chain A
+    ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghia
+    dddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddf
+    klpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+    >demo1_assignation/2LFU.pdb | model 3 | chain A
+    ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpa
+    cddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddef
+    klpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+    >demo1_assignation/2LFU.pdb | model 4 | chain A
+    ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddd
+    dddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddf
+    klmpccdddddddehiabghehiaddddddfklpccfkZZ
+    >demo1_assignation/2LFU.pdb | model 5 | chain A
+    ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadd
+    dddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddf
+    klmaccddddddfbgghiafehiadddddddfklpacfZZ
+    >demo1_assignation/2LFU.pdb | model 6 | chain A
+    ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadd
+    dddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddf
+    klmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+    >demo1_assignation/2LFU.pdb | model 7 | chain A
+    ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapa
+    dddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddf
+    klpaccdddddfklmaacdfehpadddddehjblckknZZ
+    >demo1_assignation/2LFU.pdb | model 8 | chain A
+    ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblba
+    cddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddef
+    klpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+    >demo1_assignation/2LFU.pdb | model 9 | chain A
+    ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdc
+    dddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddf
+    klmpccddddehiacbcbdfehpadddddehjklmklmZZ
+    >demo1_assignation/2LFU.pdb | model 10 | chain A
+    ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapacc
+    dddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddf
+    klpaccddddddfbcfbacfehpadddddddekpghiaZZ
+
+Sequences can be written once at a time using the
+:func:`pbxplore.io.fasta._write_fasta_entry` function.
+
+.. code:: python
+
+    with open('output.fasta', 'w') as outfile:
+        for chain_name, chain in pbx.chains_from_files(['demo1_assignation/2LFU.pdb']):
+            dihedrals = chain.get_phi_psi_angles()
+            pb_seq = pbx.assign(dihedrals)
+            pbx.io.fasta._write_fasta_entry(outfile, pb_seq, chain_name)
+
+::
+
+    Read 10 chain(s) in demo1_assignation/2LFU.pdb
+
+.. code:: python
+
+    !cat output.fasta
+    !rm output.fasta
+
+::
+
+    >demo1_assignation/2LFU.pdb | model 1 | chain A
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+    dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+    klmaccddddddfbgniaghiapaddddddfklnoambZZ
+    >demo1_assignation/2LFU.pdb | model 2 | chain A
+    ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghia
+    dddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddf
+    klpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+    >demo1_assignation/2LFU.pdb | model 3 | chain A
+    ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpa
+    cddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddef
+    klpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+    >demo1_assignation/2LFU.pdb | model 4 | chain A
+    ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddd
+    dddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddf
+    klmpccdddddddehiabghehiaddddddfklpccfkZZ
+    >demo1_assignation/2LFU.pdb | model 5 | chain A
+    ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadd
+    dddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddf
+    klmaccddddddfbgghiafehiadddddddfklpacfZZ
+    >demo1_assignation/2LFU.pdb | model 6 | chain A
+    ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadd
+    dddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddf
+    klmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+    >demo1_assignation/2LFU.pdb | model 7 | chain A
+    ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapa
+    dddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddf
+    klpaccdddddfklmaacdfehpadddddehjblckknZZ
+    >demo1_assignation/2LFU.pdb | model 8 | chain A
+    ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblba
+    cddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddef
+    klpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+    >demo1_assignation/2LFU.pdb | model 9 | chain A
+    ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdc
+    dddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddf
+    klmpccddddehiacbcbdfehpadddddehjklmklmZZ
+    >demo1_assignation/2LFU.pdb | model 10 | chain A
+    ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapacc
+    dddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddf
+    klpaccddddddfbcfbacfehpadddddddekpghiaZZ
+
+By default, the lines in fasta files are wrapped at 60 caracters as
+defined in :const:`pbxplore.io.fasta.FASTA_WIDTH`. Both
+:func:`pbxplore.io.write_fasta` and
+:func:`pbxplore.io.fasta._write_fasta_entry` have a ``width``
+optionnal argument that allows to control the wrapping.
+
+.. code:: python
+
+    print(pb_sequences[0])
+
+::
+
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+
+.. code:: python
+
+    with open('output.fasta', 'w') as outfile:
+        for width in (60, 70, 80):
+            pbx.io.fasta._write_fasta_entry(outfile, pb_sequences[0],
+                                            'width={} blocks'.format(width),
+                                            width=width)
+
+.. code:: python
+
+    !cat output.fasta
+    !rm output.fasta
+
+::
+
+    >width=60 blocks
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcd
+    dddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddf
+    klmaccddddddfbgniaghiapaddddddfklnoambZZ
+    >width=70 blocks
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddf
+    klopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniagh
+    iapaddddddfklnoambZZ
+    >width=80 blocks
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopaddddd
+    fhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+
+Flat records
+------------
+
+If we do not want to wrap the PB sequences, we can write a flat file.
+Flat files contain raw sequences, one per line, with no header. Such
+file can be easily written using the ``print`` built-in. Yet, PBxplore
+offers a quick way to write flat records of a list of sequences: the
+:func:`pbxplore.io.write_flat` function.
+
+.. code:: python
+
+    with open('output.flat', 'w') as outfile:
+        pbx.io.write_flat(outfile, pb_sequences)
+
+.. code:: python
+
+    !cat output.flat
+    !rm output.flat
+
+::
+
+    ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ
+    ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ
+    ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ
+    ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ
+    ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ
+    ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ
+    ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ
+    ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ
+    ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ
+    ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ
+
+Dihedral angles
+---------------
+
+One needs the phi and psi dihedral angles to assign protein block
+sequences. Having these angles, it is sometime convenient to store them
+in a file. This can be done using the
+:func:`pbxplore.io.write_phi_psi` function. This function works like
+the :func:`pbxplore.io.write_fasta` one as it takes 3 arguments: the
+output file, a list of dihedral angle records, and a list of names
+corresponding to each record.
+
+.. code:: python
+
+    # Store the dihedral angles for all chains in a PDB file.
+    # Store also the chain name for all chains.
+    all_dihedrals = []
+    names = []
+    for chain_name, chain in pbx.chains_from_files(['demo1_assignation/2LFU.pdb']):
+        all_dihedrals.append(chain.get_phi_psi_angles())
+        names.append(chain_name)
+
+    # Write the dihedral angles in a file
+    with open('output.phipsi', 'w') as outfile:
+        pbx.io.write_phipsi(outfile, all_dihedrals, names)
+
+::
+
+    Read 10 chain(s) in demo1_assignation/2LFU.pdb
+
+The output is formated with one line per residue. The first columns
+repeat the name given for the chain, then is the residue id followed by
+the phi and the psi angle. If an angle is not defined, 'None' is written
+instead.
+
+.. code:: python
+
+    !head output.phipsi
+    !tail output.phipsi
+    !rm output.phipsi
+
+::
+
+    demo1_assignation/2LFU.pdb | model 1 | chain A    276     None    44.77 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    277   -81.67    15.27 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    278   -79.03   -21.52 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    279  -144.43    64.08 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    280   -84.23   144.90 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    281    70.83   -64.01 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    282  -107.77    93.35 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    283   -71.42   108.03 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    284   -72.99    99.31 
+    demo1_assignation/2LFU.pdb | model 1 | chain A    285   -92.93     2.32 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    426   -88.16   127.99 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    427  -107.40  -161.76 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    428   -72.12   -14.94 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    429    66.62   -81.17 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    430  -141.67   111.76 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    431   -69.37   141.19 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    432    76.08   -75.91 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    433  -149.23   167.34 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    434   -63.43   -27.06 
+    demo1_assignation/2LFU.pdb | model 10 | chain A    435  -166.70     None 
+
+Read fasta files
+----------------
+
+We want to read sequences that we wrote in files. PBxplore provides a
+function to read fasta files: the :func:`pbxplore.io.read_fasta`
+function.
+
+.. code:: python
+
+    def pdb_to_fasta_pb(pdb_path, fasta_path):
+        """
+        Write a fasta file with all the PB sequences from a PDB
+        """
+        with open(fasta_path, 'w') as outfile:
+            for chain_name, chain in pbx.chains_from_files([pdb_path]):
+                dihedrals = chain.get_phi_psi_angles()
+                pb_seq = pbx.assign(dihedrals)
+                pbx.io.fasta._write_fasta_entry(outfile, pb_seq, chain_name)
+
+    # Write a fasta file
+    pdb_to_fasta_pb('demo1_assignation/2LFU.pdb', 'output.fasta')
+
+    # Read a list of headers and a list of sequences from a fasta file
+    names, sequences = pbx.io.read_fasta('output.fasta')
+
+    print('names:')
+    pprint(names)
+    print('sequences:')
+    pprint(sequences)
+
+    !rm output.fasta
+
+::
+
+    Read 10 chain(s) in demo1_assignation/2LFU.pdb
+    read 10 sequences in output.fasta
+    names:
+    ['demo1_assignation/2LFU.pdb | model 1 | chain A',
+     'demo1_assignation/2LFU.pdb | model 2 | chain A',
+     'demo1_assignation/2LFU.pdb | model 3 | chain A',
+     'demo1_assignation/2LFU.pdb | model 4 | chain A',
+     'demo1_assignation/2LFU.pdb | model 5 | chain A',
+     'demo1_assignation/2LFU.pdb | model 6 | chain A',
+     'demo1_assignation/2LFU.pdb | model 7 | chain A',
+     'demo1_assignation/2LFU.pdb | model 8 | chain A',
+     'demo1_assignation/2LFU.pdb | model 9 | chain A',
+     'demo1_assignation/2LFU.pdb | model 10 | chain A']
+    sequences:
+    ['ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ',
+     'ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ',
+     'ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ',
+     'ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ',
+     'ZZpaehiehkaccdddddehjbccdddddddddfklggcddddddddddddddfbhpadddddddddddfklopadddddehiamlmmpccdddddeehiadddddfbacddcddddddfklmaccddddddfbgghiafehiadddddddfklpacfZZ',
+     'ZZmghbacfkbccdddddeehpacdddddddddfklggcdddddddddddddehiacadddddddddddfklopadddddehiaklnopcddddddeehiadddehjlnopacddddddfklmaccddddehiaehbgcdehiadddddddfehjlpcZZ',
+     'ZZcchbacfkbccdddddfehpacdddddddddfklggcdddddddddddddddehjapadddddddddfknopadddddfklmmmnopcddddddehjiddddddfknopacddddddfklpaccdddddfklmaacdfehpadddddehjblckknZZ',
+     'ZZcehjdeehiacdjdddedjbdcdddddddddfklggcdddddddddddddddbfblbacddddddddfklopacddddehiamlnopaddddddehjacddddfehpaaccdddddefklpaccdddddfklmbfbehehiaddddddffkgoiehZZ',
+     'ZZpccdjdfkbccdddddehhpacdddddddddfklggcdddddddddddddehiacbdcdddddddddfklopadddddehiammnopcddddddeejiadddehjlgobacddddddfklmpccddddehiacbcbdfehpadddddehjklmklmZZ',
+     'ZZccfklcfkbccdddddehjbdcdddddddddfklggcdddddddddddddehiapaccdddddddddfklopadddddehjamlnopaddddddehjddcdddfbfghpacddddddfklpaccddddddfbcfbacfehpadddddddekpghiaZZ']
+
+If the sequences we want to read are spread amongst several fasta files,
+then we can use the :func:`pbxplore.io.read_several_fasta` function
+that takes a list of fasta file path as argument instead of a single
+path.
+
+.. code:: python
+
+    # Write several fasta files
+    pdb_to_fasta_pb('demo1_assignation/1BTA.pdb', '1BTA.fasta')
+    pdb_to_fasta_pb('demo1_assignation/2LFU.pdb', '2FLU.fasta')
+
+    # Read the fasta files
+    names, sequences = pbx.io.read_several_fasta(['1BTA.fasta', '2FLU.fasta'])
+
+    # Print the first entries
+    print('names:')
+    pprint(names[:5])
+    print('sequences:')
+    pprint(sequences[:5])
+
+    !rm 1BTA.fasta 2FLU.fasta
+
+::
+
+    Read 1 chain(s) in demo1_assignation/1BTA.pdb
+    Read 10 chain(s) in demo1_assignation/2LFU.pdb
+    read 1 sequences in 1BTA.fasta
+    read 10 sequences in 2FLU.fasta
+    names:
+    ['demo1_assignation/1BTA.pdb | chain A',
+     'demo1_assignation/2LFU.pdb | model 1 | chain A',
+     'demo1_assignation/2LFU.pdb | model 2 | chain A',
+     'demo1_assignation/2LFU.pdb | model 3 | chain A',
+     'demo1_assignation/2LFU.pdb | model 4 | chain A']
+    sequences:
+    ['ZZdddfklonbfklmmmmmmmmnopafklnoiaklmmmmmnoopacddddddehkllmmmmngoilmmmmmmmmmmmmnopacdcddZZ',
+     'ZZbghiacfkbccdddddehiadddddddddddfklggcdddddddddddddehifbdcddddddddddfklopadddddfhpamlnopcddddddehjadddddehjacbddddddddfklmaccddddddfbgniaghiapaddddddfklnoambZZ',
+     'ZZpcfblcffbccdddddeehjacdddddddddfklggcddddddddddddddfblghiadddddddddfklopadddddehpmmmnopcddddddeehiacdddfblopadcddddddfklpaccdddddfklmlmgcdehiaddddddfklmmgopZZ',
+     'ZZmgghiafbbccdddddehjbdcdddddddddfklggcddddddddddddddfbfghpacddddddddfklopadddddehiaklmmmgcdddddeehiaddddfkbgciacdddddefklpaccddddddfkgojbdfehpaddddddfkbccfbgZZ',
+     'ZZcghiacfkbacdddddfbhpacdddddddddfklmcfdddddddddddddehiacddddddddddddfknopadddddfkpamlnopaddddddehjaccdddfklnopacddddddfklmpccdddddddehiabghehiaddddddfklpccfkZZ']
