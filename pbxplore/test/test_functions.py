@@ -16,8 +16,11 @@ import unittest
 import collections
 import os
 
+import numpy
+
 import pbxplore as pbx
 from pbxplore.structure import structure
+from pbxplore.analysis import kmeans
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -173,6 +176,66 @@ class TestPBlib(unittest.TestCase):
         self.assertEqual(sequences, ['ZZdddfklonbfklmmmmmmmmnopafklnoiakl'
                                      'mmmmmnoopacddddddehkllmmmmngoilmmmm'
                                      'mmmmmmmmnopacdcddZZ'])
+
+
+class TestKMeans(unittest.TestCase):
+    """
+    Test individual functions for K-Means clustering
+    """
+
+    def test_count_per_position_partial(self):
+        sequences = ['abcdef', 'bcdefg', 'cdefgh',
+                     'defghi', 'efghij', 'fghijk',  # ignore in the test
+                     'ghijkl', 'hijklm', 'ijklmn',
+                     'ghijkl', 'hijklm', 'ijklmn',
+                     'jklmno', 'klmnop', ]          # ignore in the test
+        indices = [0, 1, 2, 6, 7, 8, 9, 10, 11]
+
+        # Shorten defaultdict call to have a nicer table
+        dd = collections.defaultdict
+        # Create a list with the right number of elements. The type of each
+        # element does not matter as the elements will be overwritten
+        ref_count = ['' for _ in range(6)]
+        # Fill the reference. Each element of the list corresponds to a
+        # position in the sequences. Only the sequences that have their index
+        # in the ``indices`` list will be used in the count.
+        ref_count[0] = dd(int, {'a': 1, 'b': 1, 'c': 1, 'g': 2, 'h': 2, 'i': 2})
+        ref_count[1] = dd(int, {'b': 1, 'c': 1, 'd': 1, 'h': 2, 'i': 2, 'j': 2})
+        ref_count[2] = dd(int, {'c': 1, 'd': 1, 'e': 1, 'i': 2, 'j': 2, 'k': 2})
+        ref_count[3] = dd(int, {'d': 1, 'e': 1, 'f': 1, 'j': 2, 'k': 2, 'l': 2})
+        ref_count[4] = dd(int, {'e': 1, 'f': 1, 'g': 1, 'k': 2, 'l': 2, 'm': 2})
+        ref_count[5] = dd(int, {'f': 1, 'g': 1, 'h': 1, 'l': 2, 'm': 2, 'n': 2})
+
+        count = kmeans.count_per_position_partial(sequences, indices)
+        self.assertEqual(count, ref_count)
+
+    def test_make_profile_partial(self):
+        sequences = ['abcdef', 'bcdefg', 'cdefgh',
+                     'defghi', 'efghij', 'fghijk',  # ignore in the test
+                     'ghijkl', 'hijklm', 'ijklmn',
+                     'ghijkl', 'hijklm', 'ijklmn',
+                     'jklmno', 'klmnop',            # ignore in the test
+                     'ijklmn']          
+        # Using 10 sequences makes things easier
+        indices = [0, 1, 2, 6, 7, 8, 9, 10, 11, 14]
+        ref_profile = numpy.array([[0.1, 0.0, 0.0, 0.0, 0.0, 0.0],   # a
+                                   [0.1, 0.1, 0.0, 0.0, 0.0, 0.0],   # b
+                                   [0.1, 0.1, 0.1, 0.0, 0.0, 0.0],   # c
+                                   [0.0, 0.1, 0.1, 0.1, 0.0, 0.0],   # d
+                                   [0.0, 0.0, 0.1, 0.1, 0.1, 0.0],   # e
+                                   [0.0, 0.0, 0.0, 0.1, 0.1, 0.1],   # f
+                                   [0.2, 0.0, 0.0, 0.0, 0.1, 0.1],   # g
+                                   [0.2, 0.2, 0.0, 0.0, 0.0, 0.1],   # h
+                                   [0.3, 0.2, 0.2, 0.0, 0.0, 0.0],   # i
+                                   [0.0, 0.3, 0.2, 0.2, 0.0, 0.0],   # j
+                                   [0.0, 0.0, 0.3, 0.2, 0.2, 0.0],   # k
+                                   [0.0, 0.0, 0.0, 0.3, 0.2, 0.2],   # l
+                                   [0.0, 0.0, 0.0, 0.0, 0.3, 0.2],   # m
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 0.3],   # n
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],   # o
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])  # p
+        profile = kmeans.make_profile_partial(sequences, indices)
+        assert(numpy.allclose(ref_profile, profile))
 
 if __name__ == '__main__':
     unittest.main()
