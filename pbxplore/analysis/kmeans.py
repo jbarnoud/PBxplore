@@ -84,7 +84,7 @@ def compatibility(profile, sequence):
     Returns
     -------
     probability: float
-        the probability of the given sequence given the profile
+        cummulative probability of the given sequence given the profile
     """
     probabilities = numpy.zeros((profile.shape[1], ))
     for pos_idx, block in enumerate(sequence):

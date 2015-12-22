@@ -237,6 +237,60 @@ class TestKMeans(unittest.TestCase):
         profile = kmeans.make_profile_partial(sequences, indices)
         assert(numpy.allclose(ref_profile, profile))
 
+    def test_compatibility_identity(self):
+        profile = numpy.array([[1.0, 0.0, 0.0, 0.0],   # a
+                               [0.0, 1.0, 0.0, 0.0],   # b
+                               [0.0, 0.0, 1.0, 0.0],   # c
+                               [0.0, 0.0, 0.0, 1.0],   # d
+                               [0.0, 0.0, 0.0, 0.0],   # e
+                               [0.0, 0.0, 0.0, 0.0],   # f
+                               [0.0, 0.0, 0.0, 0.0],   # g
+                               [0.0, 0.0, 0.0, 0.0],   # h
+                               [0.0, 0.0, 0.0, 0.0],   # i
+                               [0.0, 0.0, 0.0, 0.0],   # j
+                               [0.0, 0.0, 0.0, 0.0],   # k
+                               [0.0, 0.0, 0.0, 0.0],   # l
+                               [0.0, 0.0, 0.0, 0.0],   # m
+                               [0.0, 0.0, 0.0, 0.0],   # n
+                               [0.0, 0.0, 0.0, 0.0],   # o
+                               [0.0, 0.0, 0.0, 0.0]])  # p
+        sequence = 'abcd'
+        reference_compatibility = len(sequence)
+        compatibility = kmeans.compatibility(profile, sequence)
+        self.assertAlmostEqual(compatibility, reference_compatibility)
+
+    def test_compatibility(self):
+        # The profile correspond to the following sequences:
+        # - abcd      - ioph    - alep
+        # - jiop      - fgad    - hobe
+        # - abjp      - piep
+        # - hbno      - jojo
+        profile = numpy.array([[0.3, 0.0, 0.1, 0.0],   # a
+                               [0.0, 0.3, 0.1, 0.0],   # b
+                               [0.0, 0.0, 0.1, 0.0],   # c
+                               [0.0, 0.0, 0.0, 0.2],   # d
+                               [0.0, 0.1, 0.2, 0.1],   # e
+                               [0.1, 0.0, 0.0, 0.0],   # f
+                               [0.0, 0.1, 0.0, 0.0],   # g
+                               [0.2, 0.0, 0.0, 0.1],   # h
+                               [0.1, 0.2, 0.0, 0.0],   # i
+                               [0.2, 0.0, 0.2, 0.0],   # j
+                               [0.0, 0.0, 0.0, 0.0],   # k
+                               [0.0, 0.1, 0.0, 0.0],   # l
+                               [0.0, 0.0, 0.0, 0.0],   # m
+                               [0.0, 0.0, 0.1, 0.0],   # n
+                               [0.0, 0.2, 0.1, 0.2],   # o
+                               [0.1, 0.0, 0.1, 0.4]])  # p
+        print(profile.sum(axis=0))
+        assert(numpy.allclose(profile.sum(axis=0),
+                              numpy.ones((profile.shape[1],),
+                                         dtype=profile.dtype)))
+        reference_sequences = (('abcd', 0.9), ('hipo', 0.7), ('bcda', 0.0),
+                               ('aaaa', 0.4), ('kkkk', 0.0), ('oooo', 0.5),)
+        for sequence, reference_compatibility in reference_sequences:
+            compatibility = kmeans.compatibility(profile, sequence)
+            self.assertAlmostEqual(compatibility, reference_compatibility)
+
     def test_argmax(self):
         reference = (([0, 1, 2, 3, 4], 4),  # Ordered
                      ([4, 3, 2, 1, 0], 0),  # Reverse ordered
