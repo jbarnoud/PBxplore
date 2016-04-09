@@ -1,6 +1,8 @@
 include README.rst
 include CHANGELOG
-incluce LICENSE
+include LICENSE
 recursive-include doc *
 recursive-include pbxplore *.dat
 recursive-include pbxplore/test/test_data *
+prune .git
+global-exclude __pycache__/*
