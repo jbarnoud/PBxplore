@@ -28,13 +28,6 @@ Visualize deformability
 
 .. autofunction:: generate_weblogo
 
-Cluster protein block sequences
--------------------------------
-
-.. autofunction: distance_matrix
-
-.. autofunction: hclust
-
 Utils
 -----
 
@@ -45,7 +38,6 @@ Utils
 .. autofunction:: compute_score_by_position
 """
 
-from .clustering import hclust, distance_matrix, RError
 from .compare import compare
 from .count import count_matrix, read_occurence_file
 from .neq import compute_neq
